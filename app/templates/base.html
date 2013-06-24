@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="fr" >
+   <head>
+       <title>{{title}}</title>
+       <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link href="static/style.css" rel="stylesheet" type="text/css" />
+   </head>
+   <body>
+<!--Je crée une div (un conteneur) pour la totalité de la page,
+		ca me permet d'appliquer un style css à toute la page sans toucher à la balise body-->
+		<div id="wrapper">
+			<!--Div pour la colonne de gauche qui comportera la photo de la pile de livre-->
+			<div id="colonne">
+				<img src="static/livres.jpg" alt="Ma Bibliotheque"/>
+			</div>
+			<div id="main">
+				<div id="titre">
+					<h1>{{sitename}}</h1>
+				</div>
+
+				<div id="content">
+				{% block content %}{% endblock %}
+				</div>
+			</div>
+		</div>
+   </body>
+</html>

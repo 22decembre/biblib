@@ -1,0 +1,118 @@
+
+/*Reset CSS, les CSS ont des paramètres par défaut, c'est utile de les reset au début du CSS*/
+* {margin: 0; padding: 0; border: 0; outline: 0; font-size: 100%; vertical-align: baseline; background: transparent; line-height: 1; list-style: none; quotes: none; content: ''; content: none; }
+html {
+height: 100%
+}
+
+/*Je définis ici la taille des polices "normales dans toute la page et la police utilisée*/
+body {
+font-family : Verdana, Arial, Helvetica;
+font-size: 11pt;
+height: 100%;
+}
+
+/*Ensuite je définis les tailles des titres et sous-titres utilisés*/
+body h1,h2,h3 {
+display:inline;
+margin-top: 30px;
+font-weight: bold;
+color: #333;
+}
+body h1{
+font-size: 20pt;
+}
+body h2, h3{
+font-size: 11pt;
+}
+
+
+/*ici je décris la taille du site et sa position par rapport à la fenêtre (centré ici)*/
+#wrapper {
+margin-top: 30px;
+width: 920px;
+height: 100%;
+margin-left: 10px;
+}
+
+/*Je decris la taille, et l'emplacement du conteneur l'image de gauche*/
+#colonne {
+width: 200px;
+height: 100%;
+float:left;
+}
+/*Je place l'image dans le conteneur*/
+#colonne img{
+margin-top: 100%;
+}
+
+/*Je decris la taille, et l'emplacement de l'article*/
+#main {
+width: 700px;
+float: left;
+margin-left: 20px;
+padding-bottom: 10px;
+border-bottom : 1px dotted #999999;
+}
+/*bandeau-titre*/
+#titre{
+height: 35px;
+text-align: right;/* alignement du texte contenu*/
+padding-top: 20px;/*marge interieure à l'élément*/
+border-bottom: 1px dotted #999999;/*ligne de pointillés*/
+}
+
+/* le titre de la page est gris*/
+#titre h1{
+color: #999999
+}
+/* le contenu de l'article à une marge superieure de 30px*/
+#content {
+margin-top: 30px;
+margin-bottom: 30px;
+}
+
+/*l'image d'illustration est à droite et a des marges de 20px a gauche et 15px en bas*/
+#content img{
+float: right;
+margin-left: 20px;
+margin-bottom: 15px;
+}
+
+/*Chaque partie du texte (li) est justifiée et a une marge de 20px en haut*/
+#content #texte   li{
+margin-top: 20px;
+text-align: justify;
+}
+/*chaque paragraphe du texte est séparé du suivant par 10px (pas besoin de retour à la ligne)*/
+#content #texte   li p{
+margin-top: 10px;
+}
+/* j'insere une tabulation pour chaque paragraphe*/
+#content #texte li p:first-letter {
+padding-left: 20px;
+}
+
+#content #texte #recherche  a {
+font-size: 12px;
+float: right;
+margin-top: 40px;
+text-decoration: none;
+color: #f1265a;
+}
+
+a {
+	color: #C0C0C0;
+	line-height: 1.2;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: none;
+	border-bottom: dotted 1.2px #FFCC00;
+}
+
+/*lorsque l'on survole le lien il devient noir*/
+#content #texte #recherche  a:hover {
+color: #000000;
+}
