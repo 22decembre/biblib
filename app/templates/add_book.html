@@ -1,22 +1,23 @@
  
-<!-- extend from base layout -->
-{% extends "base.html" %}
+<!-- extend from admin layout -->
+{% extends "admin.html" %}
 
 {% block content %}
 <h1>Add a book to the database</h1>
 <form action="" method="post" name="add_book">
-    {{form_book.hidden_tag()}}
-    <p>
-	<label for=\"ean\">ISBN 13 (EAN) :</label>		{{form_book.ean}}
-	<label for=\"isbn\">ISBN :</label>			{{form_book.isbn}}
-	<label for=\"titre\">Titre (obligatoire) :</label>	{{form_book.title}}
-	<label for=\"editeur\">Maison d'édition :</label>	{{form_book.publisher}}
-	<label for=\"epaisseur\">epaisseur (cm) :</label>	{{form_book.thickness}}
-	<label for=\"longueur\">longueur (cm) :</label>		{{form_book.length}}
-	<label for=\"largeur\">largeur (cm) :</label>		{{form_book.width}}
-	<label for=\"mass\">masse (kg) :</label>		{{form_book.mass}}
-	<label for=\"pages\">Nombre de pages :</label>		{{form_book.numberofpages}}
-    </p>
+    {{form.hidden_tag()}}
+    <ul>
+	<li><label for=\"ean\">ISBN 13 (EAN) :</label>		{{form.ean}}</li>
+	<li><label for=\"isbn\">ISBN :</label>			{{form.isbn}}</li>
+	<li><label for=\"titre\">Titre (obligatoire) :</label>	{{form.title}}</li>
+	<li><label for=\"editeur\">Maison d'édition :</label>	{{form.publisher}}</li>
+	<li><label for=\"epaisseur\">epaisseur (cm) :</label>	{{form.thickness}}</li>
+	<li><label for=\"longueur\">longueur (cm) :</label>	{{form.length}}</li>
+	<li><label for=\"largeur\">largeur (cm) :</label>	{{form.width}}</li>
+	<li><label for=\"mass\">masse (kg) :</label>		{{form.mass}}</li>
+	<li><label for=\"pages\">Nombre de pages :</label>	{{form.numberofpages}}</li>
+    </ul>
+    <label for=\"summary\">Quatrième de couverture :</label>	{{form.summary}}
     <p><input type="submit" value="Send"></p>
 </form>
 {% endblock %}

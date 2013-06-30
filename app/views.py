@@ -2,11 +2,11 @@
 
 from flask import render_template, flash, redirect
 from app import app
+from forms import BookForm, AuthorForm
 
 @app.route('/')
 @app.route('/index')
 def index():
-    user = { 'nickname': 'Miguel' } # fake user
     return render_template("index.html",
     title = 'Index',
     sitename = 'Ma Bibliotheque')
@@ -14,14 +14,14 @@ def index():
     
 @app.route('/add_author', methods = ['GET', 'POST'])
 def add_author():
-    form = LoginForm()
+    form = AuthorForm()
     return render_template('add_author.html', 
-        title = 'Add an author to the database',
+        title = 'Ajouter un auteur a la base de donnees',
         form = form)
         
 @app.route('/add_book', methods = ['GET', 'POST'])
 def add_book():
-    form = LoginForm()
+    form = BookForm()
     return render_template('add_book.html', 
-        title = 'Add a book to the database',
-        form = form_book)
+        title = 'Ajouter un livre a la base de donnees',
+        form = form )

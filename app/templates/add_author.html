@@ -1,0 +1,20 @@
+ 
+<!-- extend from admin layout -->
+{% extends "admin.html" %}
+
+{% block content %}
+<h1>Add an author to the database</h1>
+<form action="" method="post" name="add_author">
+    {{form.hidden_tag()}}
+    <ul>
+	<li><label for=\"firstname\">Prénom (obligatoire) :</label>		{{form.firstname}}</li>
+	<li><label for=\"familyname\">Nom de famille (obligatoire) :</label>	{{form.familyname}}</li>
+	<li><label for=\"website\">Site web :</label>				{{form.website(size=80)}}</li>
+	<li><label for=\"dateofbirth\">Date de naissance :</label>		{{form.dateofbirth}}</li>
+	<li><label for=\"placeofbirth\">lieu de naissance :</label>		{{form.placeofbirth}}</li>
+	<li><label for=\"nationality\">Nationalité :</label>			{{form.nationality}}</li>
+    </ul>
+    <label for=\"summary\">Biographie :</label>	{{form.biography}}
+    <p><input type="submit" value="Send"></p>
+</form>
+{% endblock %}
