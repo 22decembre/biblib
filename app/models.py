@@ -11,7 +11,7 @@ class Author(db.Model):
     familyname = db.Column(db.String(120), index = True)
     website = db.Column(db.String(120))
     dateofbirth = db.Column(db.DateTime)
-    placeeofbirth = db.Column(db.String(120))
+    placeofbirth = db.Column(db.String(120))
     nationality = db.Column(db.String(120))
     biography = db.Column(db.Text)
     books = db.relationship('Book', secondary=author_book,
@@ -32,6 +32,5 @@ class Book(db.Model):
     authors = db.relationship('Author', secondary=author_book,
         backref=db.backref('book', lazy='dynamic'))
     
-class Book_Author(db.Model):
-	book = db.Column(db.Integer, primary_key = True)
-	author = db.Column(db.Integer, primary_key = True)
+    def __repr__(self):
+        return '<%r>' % (self.title)

@@ -3,21 +3,19 @@
 {% extends "admin.html" %}
 
 {% block content %}
-<h1>{{title}}</h1>
+<h1>Ajouter un livre à la base de données</h1>
 <form action="" method="post" name="add_book">
     {{form.hidden_tag()}}
-    <ul>
-	<li><label for=\"ean\">ISBN 13 (EAN) :</label>		{{form.ean}}</li>
-	<li><label for=\"isbn\">ISBN :</label>			{{form.isbn}}</li>
-	<li><label for=\"titre\">Titre (obligatoire) :</label>	{{form.title}}</li>
-	<li><label for=\"editeur\">Maison d'édition :</label>	{{form.publisher}}</li>
-	<li><label for=\"epaisseur\">epaisseur (cm) :</label>	{{form.thickness}}</li>
-	<li><label for=\"longueur\">longueur (cm) :</label>	{{form.length}}</li>
-	<li><label for=\"largeur\">largeur (cm) :</label>	{{form.width}}</li>
-	<li><label for=\"mass\">masse (kg) :</label>		{{form.mass}}</li>
-	<li><label for=\"pages\">Nombre de pages :</label>	{{form.numberofpages}}</li>
-    </ul>
-    <label for=\"summary\">Quatrième de couverture :</label>	{{form.summary}}
-    <p><input type="submit" value="Send"></p>
+	<p>ISBN 13 (EAN) :		{{form.ean}}</p>
+	<p>ISBN :			{{form.isbn}}</p>
+	<p>Titre (obligatoire) :	{{form.title}}</p>
+	<p>Maison d'édition :		{{form.publisher}}</p>
+	<p>epaisseur (cm) :		{{form.thickness}}</p>
+	<p>longueur (cm) :		{{form.length}}</p>
+	<p>largeur (cm) :		{{form.width}}</p>
+	<p>masse (kg) :			{{form.mass}}</p>
+	<p>Nombre de pages :		{{form.numberofpages}}</p>
+    <p>Quatrième de couverture :	{{form.summary}}</p>
+    <p><input type="submit" value="Envoyez"></p>
 </form>
 {% endblock %}

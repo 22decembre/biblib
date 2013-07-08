@@ -3,18 +3,16 @@
 {% extends "admin.html" %}
 
 {% block content %}
-<h1>{{title}}</h1>
+<h1>Ajouter un auteur à la base de données</h1>
 <form action="" method="post" name="add_author">
     {{form.hidden_tag()}}
-    <ul>
-	<li><label for=\"firstname\">Prénom (obligatoire) :</label>		{{form.firstname}}</li>
-	<li><label for=\"familyname\">Nom de famille (obligatoire) :</label>	{{form.familyname}}</li>
-	<li><label for=\"website\">Site web :</label>				{{form.website(size=80)}}</li>
-	<li><label for=\"dateofbirth\">Date de naissance :</label>		{{form.dateofbirth}}</li>
-	<li><label for=\"placeofbirth\">lieu de naissance :</label>		{{form.placeofbirth}}</li>
-	<li><label for=\"nationality\">Nationalité :</label>			{{form.nationality}}</li>
-    </ul>
-    <label for=\"summary\">Biographie :</label>	{{form.biography}}
-    <p><input type="submit" value="Send"></p>
+    <p>Veuillez donner son prénom (obligatoire) : {{form.firstname}}</p>
+    <p>Nom de famille (obligatoire) : {{form.familyname}}</p>
+    <p>Nationalité : {{form.nationality}}</p>
+    <p>Lieu de naissance : {{form.placeofbirth}}</p>
+    <p>Date de naissance (Y-m-d): {{form.dateofbirth}}</p>
+    <p>Site web : {{form.website}}</p>
+    <p>Biographie : {{form.biography}}</p>
+   <p><input type="submit" value="Envoyer"></p>
 </form>
 {% endblock %}
