@@ -1,0 +1,18 @@
+ 
+<!-- extend from admin layout -->
+{% extends "admin.html" %}
+
+{% block content %}
+<h1>{{title}}</h1>
+<form action="" method="post" name="add_book">
+    {{form.hidden_tag()}}
+    <p>Vous devez fournir au minimum deux éléments.</p>
+    <ul>
+	<li><label for=\"ean\">ISBN 13 (EAN) :</label>	{{form.ean}}</li>
+	<li><label for=\"isbn\">ISBN :</label>		{{form.isbn}}</li>
+	<li><label for=\"title\">Titre :</label>	{{form.title}}</li>
+	<li><label for=\"author\">Auteur :</label>	{{form.author}}</li>
+    </ul>
+    <p><input type="submit" value="Send"></p>
+</form>
+{% endblock %}

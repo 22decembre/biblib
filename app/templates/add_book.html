@@ -3,18 +3,24 @@
 {% extends "admin.html" %}
 
 {% block content %}
-<h1>Ajouter un livre à la base de données</h1>
 <form action="" method="post" name="add_book">
     {{form.hidden_tag()}}
-	<p>ISBN 13 (EAN) :		{{form.ean}}</p>
-	<p>ISBN :			{{form.isbn}}</p>
-	<p>Titre (obligatoire) :	{{form.title}}</p>
-	<p>Maison d'édition :		{{form.publisher}}</p>
-	<p>epaisseur (cm) :		{{form.thickness}}</p>
-	<p>longueur (cm) :		{{form.length}}</p>
-	<p>largeur (cm) :		{{form.width}}</p>
-	<p>masse (kg) :			{{form.mass}}</p>
-	<p>Nombre de pages :		{{form.numberofpages}}</p>
+
+{% if dico %}
+<h1>Ajouter le livre <i>{{dico.title}}</i> à la base de données</h1>
+    {% else %}
+    {% set dico = [] %}
+ <h1>Ajouter un livre à la base de données</h1>
+ {% endif %}
+	<p>Titre (obligatoire) :	{{form.title(value=dico.title)}}</p>
+	<p>ISBN 13 (EAN) :		{{form.ean(value=dico.EAN)}}</p>
+	<p>ISBN :			{{form.isbn(value=dico.ISBN)}}</p>
+	<p>Maison d'édition :		{{form.publisher(value=dico.publisher)}}</p>
+	<p>epaisseur (cm) :		{{form.thickness(value=dico.thickness)}}</p>
+	<p>longueur (cm) :		{{form.length(value=dico.length)}}</p>
+	<p>largeur (cm) :		{{form.width(value=dico.width)}}</p>
+	<p>masse (kg) :			{{form.mass(value=dico.mass)}}</p>
+	<p>Nombre de pages :		{{form.numberofpages(value=dico.pages)}}</p>
     <p>Quatrième de couverture :	{{form.summary}}</p>
     <p><input type="submit" value="Envoyez"></p>
 </form>

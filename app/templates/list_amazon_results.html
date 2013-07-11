@@ -1,0 +1,25 @@
+ 
+<!-- extend from admin layout -->
+{% extends "admin.html" %}
+
+{% block content %}
+<h1>{{title}}</h1>
+
+<p>En cliquant sur le titre d'un livre ou sur l'image, vous ouvrez une page pour l'enregistrer dans la base de donnée.</p>
+
+{% for book in listing %}
+<p>
+  <h2><a href='/add_amazon_book/{{book["ASIN"]}}' >{{book["title"]}}</a></h2>
+  {% if book["img"] %}
+  <img src="{{book["img"]}}" align="left" alt ="Photo de couverture de {{book["title"]}}" />
+  {% endif %}
+  <ul>
+  <li>isbn : {{book["ISBN"]}}
+  <li>ean : {{book["EAN"]}}
+  <li>maison d'édition : {{book["publisher"]}}
+ </ul>
+</p>
+<br />
+{% endfor %}
+
+{% endblock %}

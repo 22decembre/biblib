@@ -1,4 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
 
+<ul id="texte">
+<li><h2>Titre : </h2><p>{{book.title}}</p></li>
+
+<li><h3>Auteur : </h3>
+{% for author in authors %}
+<p><a href="/author/".{{author.id}}."/">{{author.firstname}} {{author.familyname}}</a></p>
+{% endfor %}
+</li>
+
+<li><h3>ISBN 13 (EAN) : </h3><p>{{book.ean}}</p></li>
+<li><h3>ISBN : </h3><p>{{book.isbn}}</p></li>
+<li><h3>Maison d'édition : </h3><p>{{book.publisher}}</p></li>
+<li><h3>Quatrième de couverture : </h3><p>{{book.summary}}</p></li>
+
 {% endblock %}

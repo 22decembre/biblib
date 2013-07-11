@@ -1,22 +1,26 @@
 # -*- coding: utf-8 -*-
 
 import os
+from app import app
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 CSRF_ENABLED = True
 SECRET_KEY = 'you-will-never-guess'
+LANG = 'fr'
+
+AWS_KEY = 'AKIAJFESEM3FR6WMMKLA'
+AMAZON_SECRET_KEY = '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'
 
 # DB TYPE
-SQL = 'sqlite'
+SQL = 'mysql'
 
 # FOR SERVER DATABASES : ORACLE, MYSQL, POSTGRESQL
-SQL_HOST = ''
-SQL_DB = ''
-SQL_USER = ''
-SQL_PASS = ''
-SQL_PORT = ''
-
-#SQLALCHEMY_DATABASE_URI = SQL + ', username=' + SQL_USER + ', password=' + SQL_PASS + ', host=' + SQL_HOST + ', port= ' + SQL_PORT + ', database=' + SQL_DB
+SQL_HOST = 'blackblock.22decembre.eu'	# defaut : localhost in case of empty
+SQL_DB = ''				# defaut : biblib in cas of empty
+SQL_USER = ''				# defaut : biblib in cas of empty
+SQL_PASS = 'G3bmuqe5QKFZ5G3y'
+SQL_PORT = ''				# defaut engine port in case of empty
 
 if SQL == 'sqlite' :
 	SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
@@ -27,6 +31,9 @@ else :
 
 	if SQL_USER == '' :
 		SQL_USER = 'biblib'
+		
+	if SQL_DB == '' :
+		SQL_DB = 'biblib'
 
 	if SQL_PORT != '' :
 		SQLALCHEMY_DATABASE_URI = SQL + '://' + SQL_USER + ':' + SQL_PASS + '@' + SQL_HOST + ':' + SQL_PORT + '/' + SQL_DB
@@ -34,7 +41,4 @@ else :
 	else :
 		SQLALCHEMY_DATABASE_URI = SQL + '://' + SQL_USER + ':' + SQL_PASS + '@' + SQL_HOST + '/' + SQL_DB
 
-#mysql://scott:tiger@localhost/foo
-
-#SQLALCHEMY_DATABASE_URI = SQL + '://' +
 SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
