@@ -1,0 +1,8 @@
+fonction de login ?
+statistques
+liaisons entre livres et auteurs
+affichages des auteurs dans le listing d'amazon
+destruction des livres et auteurs.
+remplacer add_ par edit_ (sauf pour add_amazon_book)
+possibilité de laisser des commentaires sur les pages.
+gestion des couvertures (file upload + amazon)
