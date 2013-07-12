@@ -1,0 +1,12 @@
+ 
+<!-- extend from admin layout -->
+{% extends "admin.html" %}
+
+{% block content %}
+<h1>Administration</h1>
+<h2>Supprimer un auteur</h2>
+<h2>Supprimer un livre</h2>
+<h2>Statistiques</h2>
+<p>Il y a {{dico.aut}} auteurs enregistrés dans la base de données.</p>
+<p>Il y a {{dico.bk_nb}} livres enregistrés dans la base de données, pour un total de {{dico.bk_mass}} {{dico.bk_mass_unit}}, {{dico.bk_vol}} {{dico.bk_vol_unit}}, soit une pile d'une hauteur totale de {{dico.bk_len}} m.</p>
+{% endblock %}
