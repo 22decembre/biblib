@@ -1,3 +1,5 @@
+
+<!-- extend from admin layout -->
 {% extends "base.html" %}
 {% block content %}
 
@@ -6,13 +8,22 @@
 
 <li><h3>Auteur : </h3>
 {% for author in authors %}
-<p><a href="/author/".{{author.id}}."/">{{author.firstname}} {{author.familyname}}</a></p>
+<p><a href="/author/{{author.id}}">{{author.firstname}} {{author.familyname}}</a></p>
 {% endfor %}
 </li>
 
+{% if book.ean %}
 <li><h3>ISBN 13 (EAN) : </h3><p>{{book.ean}}</p></li>
+{% endif %}
+
+{% if book.isbn %}
 <li><h3>ISBN : </h3><p>{{book.isbn}}</p></li>
+{% endif %}
+
+{% if book.publisher %}
 <li><h3>Maison d'édition : </h3><p>{{book.publisher}}</p></li>
+{% endif %}
+
 <li><h3>Quatrième de couverture : </h3><p>{{book.summary}}</p></li>
 
 {% endblock %}

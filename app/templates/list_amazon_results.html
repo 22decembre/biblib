@@ -5,20 +5,34 @@
 {% block content %}
 <h1>{{title}}</h1>
 
-<p>En cliquant sur le titre d'un livre ou sur l'image, vous ouvrez une page pour l'enregistrer dans la base de donnée.</p>
+<p>En cliquant sur le titre d'un livre ou sur l'image, vous ouvrez une page pour l'enregistrer dans la base de donnéeS.</p>
 
 {% for book in listing %}
 <p>
   <h2><a href='/add_amazon_book/{{book["ASIN"]}}' >{{book["title"]}}</a></h2>
   {% if book["img"] %}
-  <img src="{{book["img"]}}" align="left" alt ="Photo de couverture de {{book["title"]}}" />
+  <a href='/add_amazon_book/{{book["ASIN"]}}' ><img src="{{book["img"]}}" align="left" alt ="Photo de couverture de {{book["title"]}}" /></a>
   {% endif %}
+  
   <ul>
-  <li>isbn : {{book["ISBN"]}}
-  <li>ean : {{book["EAN"]}}
-  <li>maison d'édition : {{book["publisher"]}}
+  {% if book["ISBN"] %}
+  <li>isbn : {{book["ISBN"]}}</li>
+  {% endif %}
+  
+  {% if book["EAN"] %}
+  <li>ean : {{book["EAN"]}}</li>
+   {% endif %}
+   
+  {% if book["publisher"] %}
+  <li>maison d'édition : {{book["publisher"]}}</li>
+  {% endif %}
+  
+  {% for author in book["authors"] %}
+  <li>auteur : {{author}}</li>
+  {% endfor %}
  </ul>
 </p>
+<br />
 <br />
 {% endfor %}
 

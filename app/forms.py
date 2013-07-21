@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from flask.ext.wtf import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, validators
-from flask.ext.wtf import Required
+import flask
+from flask.ext.wtf import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, FileField, file_allowed, validators, Required
+from flask.ext.uploads import UploadSet, IMAGES
+from werkzeug import secure_filename
+
+images = UploadSet("images", IMAGES)
 
 class LoginForm(Form):
     openid = TextField('openid', validators = [Required()])
@@ -18,6 +22,7 @@ class BookForm(Form):
 	mass = DecimalField('mass', [validators.optional()])
 	numberofpages = IntegerField('numberofpages', [validators.optional()])
 	summary = TextAreaField('summary', [validators.optional()])
+	cover = FileField("cover", [validators.optional(),file_allowed(images, "Images only!")])
 
 class AuthorForm(Form):
 	familyname = TextField('familyname', [validators.Required()])
@@ -27,6 +32,7 @@ class AuthorForm(Form):
 	placeofbirth = TextField('placeofbirth', [validators.optional()])
 	nationality = TextField('nationality', [validators.optional()])
 	website = TextField('website', [validators.optional()])
+	photo = FileField("photo", [validators.optional(),file_allowed(images, "Images only!")])
 
 class SearchForm(Form):
 	title = TextField('title')

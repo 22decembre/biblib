@@ -6,14 +6,28 @@
 
 <li><h3>Livres : </h3>
 {% for book in author.books %}
-<p><a href="/book/".{{book.id}}."/">{{book.title}}</a></p>
+<p><a href="/book/{{book.id}}">{{book.title}}</a></p>
 {% endfor %}
 </li>
 
+{% if author.website %}
 <li><h3>Son site web : </h3><p>{{author.website}}</p></li>
+{% endif %}
+
+{% if author.dateofbirth %}
 <li><h3>Sa date de naissance :</h3><p>{{author.dateofbirth}}</p></li>
+{% endif %}
+
+{% if author.placeofbirth %}
 <li><h3>Lieu de naissance : </h3><p>{{author.placeofbirth}}</p></li>
+{% endif %}
+
+{% if author.nationality %}
 <li><h3>Nationalité : </h3><p>{{author.nationality}}</p></li>
+{% endif %}
+
+{% if author.biography %}
 <li><h3>Sa vie : </h3><p>{{author.biography}}</p></li>
+{% endif %}
 
 {% endblock %}

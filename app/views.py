@@ -1,21 +1,37 @@
 # -*- coding: utf-8 -*-
 
-from flask import render_template, flash, redirect
+from flask import render_template, flash, redirect, request
+from flask.ext.wtf import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, FileField, file_allowed, validators, Required
+from flask.ext.uploads import UploadSet, IMAGES
 from app import app, db
 from config import AWS_KEY,AMAZON_SECRET_KEY,LANG
 from models import Author, Book
 from forms import BookForm, AuthorForm, SearchForm, LoginForm
+from lxml import objectify
 import bottlenose
-import simplexml
 import os
+from werkzeug import secure_filename
 
 
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template("index.html",
-    title = 'Index',
-    sitename = 'Ma Bibliotheque')
+	bk = Book.query.with_entities(Book.id,Book.title).all()
+	return render_template("index.html",
+	title = 'Index',
+	sitename = 'Ma Bibliotheque',books = bk)
+
+
+@app.route('/book/<number>')
+def book(number):
+	book = Book.query.filter_by(id = number).first()
+	return render_template('book.html', sitename = 'Ma Bibliotheque', title = book.title, book = book)
+
+@app.route('/author/<number>')
+def author(number):
+	author = Author.query.filter_by(id = number).first()
+	author.completename = author.firstname + ' ' + author.familyname
+	return render_template('author.html', sitename = 'Ma Bibliotheque', title = author.completename, author = author)
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
@@ -103,6 +119,10 @@ def edit_book():
 		b.mass = form.mass.data
 		b.numberofpages = form.numberofpages.data
 		b.publisher = form.publisher.data
+		#
+		f = request.files['cover']
+		f.save(secure_filename(f.filename))
+		#
 		db.session.add(b)
 		db.session.commit()
 		return redirect('/admin')
@@ -113,69 +133,109 @@ def search_amazon_book():
 	form = SearchForm()
 	if form.validate_on_submit():
 		amazon = bottlenose.Amazon(AWS_KEY,AMAZON_SECRET_KEY,LANG)
-		search = amazon.ItemSearch(EAN=str(form.ean.data), ISBN=str(form.isbn.data), Title=str(form.title.data), Author=str(form.author.data), SearchIndex='Books', ResponseGroup='Medium')
-		xml = simplexml.loads(search)
+		search = amazon.ItemSearch(EAN=str(form.ean.data), ISBN=str(form.isbn.data), Title=unicode(form.title.data), Author=unicode(form.author.data), SearchIndex='Books', ResponseGroup='Medium')
+		#
 		# I create a list of each book found with just what I need to identify them. We will be able to modify the book later.
+		#
+		root = objectify.fromstring(search)
 		listing = list()
-		for item in xml['ItemSearchResponse']['Items']['Item']:
+		for item in root.Items.Item:
 			dico = dict()
-			dico["title"] = str(item["ItemAttributes"]["Title"])
-			dico["ASIN"] = item["ASIN"]
-			if 'SmallImage' in item.keys():
-				dico["img"] = item["SmallImage"]["URL"]
-			if 'ISBN' in item['ItemAttributes'].keys():
-				dico["ISBN"] = 		item["ItemAttributes"]["ISBN"]
-			if 'EAN' in item['ItemAttributes'].keys():
-				dico["EAN"] = 		item["ItemAttributes"]["EAN"]
-			if 'Manufacturer' in item["ItemAttributes"].keys():
-				dico["publisher"] = 	item["ItemAttributes"]["Publisher"]
-			
+			dico["title"] = unicode(item.ItemAttributes.Title)
+			dico["ASIN"] = unicode(item.ASIN)
+			try:
+				dico["img"] = 	unicode(item.SmallImage.URL)
+			except AttributeError:
+				dico["img"] = ''
+			try:
+				dico["ISBN"] = 	unicode(item.ItemAttributes.ISBN)
+			except AttributeError:
+				dico["ISBN"] = ''
+			try:
+				dico["EAN"] = 	unicode(item.ItemAttributes.EAN)
+			except AttributeError:
+				dico["EAN"] = ''
+			try:
+				dico["publisher"] = unicode(item.ItemAttributes.Publisher)
+			except AttributeError:
+				dico["publisher"] = ''
+			auts = list()
+			try:
+				for author in item.ItemAttributes.Author:
+					auts.append(unicode(author))
+					dico["authors"] = auts
+			except AttributeError:
+				dico["authors"] = ''
 			listing.append(dico)
 		return render_template('list_amazon_results.html',listing = listing)
 	return render_template('search_amazon_book.html', title = 'Chercher un livre dans la base de donnees mondiale d\'Amazon', form = form )
 
-@app.route('/add_amazon_book/<number>', methods = ['GET', 'POST'])
-def add_amazon_book(number):
+@app.route('/add_amazon_book/<asin>', methods = ['GET', 'POST'])
+def add_amazon_book(asin):
 	amazon = bottlenose.Amazon(AWS_KEY,AMAZON_SECRET_KEY,LANG)
 	#
 	# we fetch the primary informations from large group amazon search
 	#
-	search = amazon.ItemLookup(IdType='ASIN', ItemId= number, ResponseGroup='Large')
-	xml = simplexml.loads(search)
+	fetch = amazon.ItemLookup(IdType='ASIN', ItemId= asin, ResponseGroup='Large')
+	xml = objectify.fromstring(fetch)
 	dico = dict()
-	if 'Title' in xml['ItemLookupResponse']['Items']['Item']['ItemAttributes'].keys():
-		dico["title"] = str(xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['Title'])
-	if 'LargeImage' in xml['ItemLookupResponse']['Items']['Item'].keys():
-		dico["img"] = str(xml['ItemLookupResponse']['Items']['Item']['LargeImage']['URL'])
-	if 'ISBN' in xml['ItemLookupResponse']['Items']['Item']['ItemAttributes'].keys():
-		dico["ISBN"] = int(xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['ISBN'])
-	if 'EAN' in xml['ItemLookupResponse']['Items']['Item']['ItemAttributes'].keys():
-		dico["EAN"] = int(xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['EAN'])
-	if 'Publisher' in xml['ItemLookupResponse']['Items']['Item']['ItemAttributes'].keys():
-		dico["publisher"] = str(xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['Publisher'])
-	if 'PackageDimensions' in xml['ItemLookupResponse']['Items']['Item']['ItemAttributes'].keys():
-		#
-		# amazon works in US units (hundreds-inches and pounds). I want them in kilos and cm, so I import the data in float and translate.
-		#
-		if 'Height' in xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['PackageDimensions'].keys():
-			thickness = float(xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['PackageDimensions']["Height"])
-			dico["thickness"] = round(thickness * 2.54/100, 1)
-		if 'Length' in xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['PackageDimensions'].keys():
-			length = float(xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['PackageDimensions']["Length"])
-			dico["length"] = round(length * 2.54/100, 1)
-		if 'Width' in xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['PackageDimensions'].keys():
-			width = float(xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['PackageDimensions']["Width"])
-			dico["width"] = round(width * 2.54/100, 1)
-		if 'Weight' in xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['PackageDimensions'].keys():
-			mass = float(xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['PackageDimensions']["Weight"])
-			dico["mass"] = round(mass * 0.45/100,2)
-	if 'NumberOfPages' in xml['ItemLookupResponse']['Items']['Item']['ItemAttributes'].keys():
-		dico["pages"] = xml['ItemLookupResponse']['Items']['Item']['ItemAttributes']['NumberOfPages']
+	try:
+		dico["title"] = unicode(xml.Items.Item.ItemAttributes.Title)
+	except AttributeError:
+		dico["title"] = ''
+	try:
+		dico["img"] = unicode(xml.Items.Item.LargeImage.URL)
+	except AttributeError:
+		dico["img"] = ''
+	try:
+		dico["ISBN"] = int(xml.Items.Item.ItemAttributes.ISBN)
+	except AttributeError:
+		dico["ISBN"] = ''
+	try:
+		dico["EAN"] = int(xml.Items.Item.ItemAttributes.EAN)
+	except AttributeError:
+		dico["EAN"] = ''
+	try:
+		dico["publisher"] = unicode(xml.Items.Item.ItemAttributes.Publisher)
+	except AttributeError:
+		dico["publisher"] = ''
+	#
+	# amazon works in US units (hundreds-inches and pounds). I want them in kilos and cm, so I import the data in float and translate.
+	#
+	try:
+		thickness = float(xml.Items.Item.ItemAttributes.PackageDimensions.Height)
+		dico["thickness"] = round(thickness * 2.54/100, 1)
+	except AttributeError:
+		dico["thickness"] = ''
+	try:
+		length = float(xml.Items.Item.ItemAttributes.PackageDimensions.Length)
+		dico["length"] = round(length * 2.54/100, 1)
+	except AttributeError:
+		dico["length"] = ''
+	try:
+		width = float(xml.Items.Item.ItemAttributes.PackageDimensions.Width)
+		dico["width"] = round(width * 2.54/100, 1)
+	except AttributeError:
+		dico["width"] = ''
+	try:
+		mass = float(xml.Items.Item.ItemAttributes.PackageDimensions.Weight)
+		dico["mass"] = round(mass * 0.45/100,2)
+	except AttributeError:
+		dico["mass"] = ''
+	try:
+		dico["pages"] = int(xml.Items.Item.ItemAttributes.NumberOfPages)
+	except AttributeError:
+		dico["pages"] = ''
+	try:
+		dico["summary"] = unicode(xml.Items.Item.EditorialReviews.EditorialReview.Content)
+		print 'toto'
+	except AttributeError:
+		dico["summary"] = ''
+	
 	#
 	# summary comes from the editorial review group search
 	#
-	search = amazon.ItemLookup(IdType='ASIN', ItemId= number, ResponseGroup='Large')
-	xml = simplexml.loads(search)
+	#search = amazon.ItemLookup(IdType='ASIN', ItemId= number, ResponseGroup='Large')
 	form = BookForm()
 	if form.validate_on_submit():
 		b = Book(title = form.title.data)	#
@@ -193,13 +253,3 @@ def add_amazon_book(number):
 		db.session.commit()
 		return redirect('/admin')
 	return render_template('edit_book.html', form = form, dico = dico)
-
-@app.route('/book/<number>')
-def book(number):
-	book = Book.query.filter_by(id = number).first()
-	return render_template('book.html', title = book.title )
-
-@app.route('/author/<number>')
-def author(number):
-	author = Author.query.filter_by(id = number).first()
-	return render_template('author.html', title = author.firstname )
