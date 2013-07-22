@@ -3,20 +3,23 @@
 {% extends "base.html" %}
 {% block content %}
 
+{% if url %}
+<img src="{{url}}" alt="couverture de {{book.title}}" width="150px"/>
+{% endif %}
+
 <ul id="texte">
 <li><h2>Titre : </h2><p>{{book.title}}</p></li>
 
-<li><h3>Auteur : </h3>
 {% for author in authors %}
-<p><a href="/author/{{author.id}}">{{author.firstname}} {{author.familyname}}</a></p>
+<li><h3>Auteur : </h3><p><a href="/author/{{author.id}}">{{author.firstname}} {{author.familyname}}</a></p></li>
 {% endfor %}
 </li>
 
-{% if book.ean %}
+{% if book.ean != 0 %}
 <li><h3>ISBN 13 (EAN) : </h3><p>{{book.ean}}</p></li>
 {% endif %}
 
-{% if book.isbn %}
+{% if book.isbn != 0 %}
 <li><h3>ISBN : </h3><p>{{book.isbn}}</p></li>
 {% endif %}
 
@@ -24,6 +27,8 @@
 <li><h3>Maison d'édition : </h3><p>{{book.publisher}}</p></li>
 {% endif %}
 
+{% if book.summary %}
 <li><h3>Quatrième de couverture : </h3><p>{{book.summary}}</p></li>
+{% endif %}
 
 {% endblock %}

@@ -2,7 +2,7 @@
 
 from flask import render_template, flash, redirect, request
 from flask.ext.wtf import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, FileField, file_allowed, validators, Required
-from flask.ext.uploads import UploadSet, IMAGES
+from flaskext.uploads import UploadSet, IMAGES, configure_uploads
 from app import app, db
 from config import AWS_KEY,AMAZON_SECRET_KEY,LANG
 from models import Author, Book
@@ -12,6 +12,11 @@ import bottlenose
 import os
 from werkzeug import secure_filename
 
+photos = UploadSet('photos', IMAGES)
+configure_uploads(app, photos)
+
+covers = UploadSet('covers', IMAGES)
+configure_uploads(app, covers)
 
 @app.route('/')
 @app.route('/index')
@@ -25,7 +30,8 @@ def index():
 @app.route('/book/<number>')
 def book(number):
 	book = Book.query.filter_by(id = number).first()
-	return render_template('book.html', sitename = 'Ma Bibliotheque', title = book.title, book = book)
+	url = covers.url(book.cover)
+	return render_template('book.html', sitename = 'Ma Bibliotheque', title = book.title, book = book, url = url)
 
 @app.route('/author/<number>')
 def author(number):
@@ -99,6 +105,12 @@ def edit_author():
 		a.placeofbirth = form.placeofbirth.data
 		a.website = form.website.data
 		a.biography = form.biography.data
+		
+		if request.method == 'POST' and 'photo' in request.files:
+			print 'ok photo auteur'
+			filename = photos.save(request.files['photo'])
+			a.photo = filename
+		
 		db.session.add(a)
 		db.session.commit()
 		return redirect('/admin')
@@ -119,10 +131,12 @@ def edit_book():
 		b.mass = form.mass.data
 		b.numberofpages = form.numberofpages.data
 		b.publisher = form.publisher.data
-		#
-		f = request.files['cover']
-		f.save(secure_filename(f.filename))
-		#
+		
+		if request.method == 'POST' and 'cover' in request.files:
+			filename = covers.save(request.files['cover'])
+			print filename
+			b.cover = filename
+		
 		db.session.add(b)
 		db.session.commit()
 		return redirect('/admin')
@@ -148,13 +162,13 @@ def search_amazon_book():
 			except AttributeError:
 				dico["img"] = ''
 			try:
-				dico["ISBN"] = 	unicode(item.ItemAttributes.ISBN)
+				dico["ISBN"] = 	int(item.ItemAttributes.ISBN)
 			except AttributeError:
-				dico["ISBN"] = ''
+				dico["ISBN"] = 0
 			try:
-				dico["EAN"] = 	unicode(item.ItemAttributes.EAN)
+				dico["EAN"] = 	int(item.ItemAttributes.EAN)
 			except AttributeError:
-				dico["EAN"] = ''
+				dico["EAN"] = 0
 			try:
 				dico["publisher"] = unicode(item.ItemAttributes.Publisher)
 			except AttributeError:
@@ -190,11 +204,11 @@ def add_amazon_book(asin):
 	try:
 		dico["ISBN"] = int(xml.Items.Item.ItemAttributes.ISBN)
 	except AttributeError:
-		dico["ISBN"] = ''
+		dico["ISBN"] = 0
 	try:
 		dico["EAN"] = int(xml.Items.Item.ItemAttributes.EAN)
 	except AttributeError:
-		dico["EAN"] = ''
+		dico["EAN"] = 0
 	try:
 		dico["publisher"] = unicode(xml.Items.Item.ItemAttributes.Publisher)
 	except AttributeError:

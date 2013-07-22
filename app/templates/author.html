@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 
+{% if author.photo %}
+<img src="/photos/{{author.photo}}" alt="{{author.firstname}} {{author.familyname}}" width="150px"/>
+{% endif %}
+
 <ul id="texte">
 <li><h2>Auteur : </h2><p>{{author.firstname}} {{author.familyname}}</p></li>
 
@@ -11,7 +15,7 @@
 </li>
 
 {% if author.website %}
-<li><h3>Son site web : </h3><p>{{author.website}}</p></li>
+<li><h3>Son site web : </h3><p><a href="{{author.website}}">{{author.website}}</a></p></li>
 {% endif %}
 
 {% if author.dateofbirth %}

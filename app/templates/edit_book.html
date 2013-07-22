@@ -21,7 +21,7 @@
 	<p>largeur (cm) :		{{form.width(value=dico.width)}}</p>
 	<p>masse (kg) :			{{form.mass(value=dico.mass)}}</p>
 	<p>Nombre de pages :		{{form.numberofpages(value=dico.pages)}}</p>
-	<p>Couverture du livre :	{{form.cover}}</p>
+	<p>Couverture du livre :	{{form.cover(value=dico.img)}}</p>
     <p>Quatrième de couverture :	{{form.summary(cols="35", rows="20")|safe}}</p>
     <p><input type="submit" value="Envoyez"></p>
 </form>

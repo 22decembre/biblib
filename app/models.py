@@ -14,6 +14,7 @@ class Author(db.Model):
     placeofbirth = db.Column(db.String(120))
     nationality = db.Column(db.String(120))
     biography = db.Column(db.Text)
+    photo = db.Column(db.String(120))
     books = db.relationship('Book', secondary=author_book,
         backref=db.backref('author', lazy='dynamic'))
 
@@ -29,6 +30,7 @@ class Book(db.Model):
     length = db.Column(db.Float)
     numberofpages = db.Column(db.Integer)
     summary = db.Column(db.Text)
+    cover = db.Column(db.String(120))
     authors = db.relationship('Author', secondary=author_book,
         backref=db.backref('book', lazy='dynamic'))
     
