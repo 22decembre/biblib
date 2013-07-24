@@ -30,13 +30,16 @@ def index():
 @app.route('/book/<number>')
 def book(number):
 	book = Book.query.filter_by(id = number).first()
-	url = covers.url(book.cover)
-	return render_template('book.html', sitename = 'Ma Bibliotheque', title = book.title, book = book, url = url)
+	if book.cover != None:
+		book.photo_url = covers.url(book.cover)
+	return render_template('book.html', sitename = 'Ma Bibliotheque', title = book.title, book = book)
 
 @app.route('/author/<number>')
 def author(number):
 	author = Author.query.filter_by(id = number).first()
 	author.completename = author.firstname + ' ' + author.familyname
+	if author.photo != None:
+		author.photo_url = photos.url(author.photo)
 	return render_template('author.html', sitename = 'Ma Bibliotheque', title = author.completename, author = author)
 
 @app.route('/login', methods = ['GET', 'POST'])
@@ -96,6 +99,7 @@ def admin():
 
 @app.route('/edit_author', methods = ['GET', 'POST'])
 def edit_author():
+	bk = Book.query.with_entities(Book.id,Book.title).all()
 	form = AuthorForm()
 	if form.validate_on_submit():
 		a = Author(firstname= form.firstname.data, familyname= form.familyname.data)
@@ -105,19 +109,20 @@ def edit_author():
 		a.placeofbirth = form.placeofbirth.data
 		a.website = form.website.data
 		a.biography = form.biography.data
+		a.books = form.book_list.data
 		
-		if request.method == 'POST' and 'photo' in request.files:
-			print 'ok photo auteur'
-			filename = photos.save(request.files['photo'])
+		if request.method == 'POST' and 'portrait' in request.files:
+			filename = photos.save(request.files['portrait'])
 			a.photo = filename
 		
 		db.session.add(a)
 		db.session.commit()
 		return redirect('/admin')
-	return render_template('edit_author.html', title = 'Ajouter un auteur a la base de donnees', form = form)
+	return render_template('edit_author.html', title = 'Ajouter un auteur a la base de donnees', form = form, book_list = bk)
 
 @app.route('/edit_book', methods = ['GET', 'POST'])
 def edit_book():
+	auts = Author.query.with_entities(Author.id,Author.firstname,Author.familyname).all()
 	form = BookForm()
 	if form.validate_on_submit():
 		b = Book(title = form.title.data)
@@ -131,16 +136,16 @@ def edit_book():
 		b.mass = form.mass.data
 		b.numberofpages = form.numberofpages.data
 		b.publisher = form.publisher.data
+		b.authors = form.authors_list.data
 		
 		if request.method == 'POST' and 'cover' in request.files:
 			filename = covers.save(request.files['cover'])
-			print filename
 			b.cover = filename
 		
 		db.session.add(b)
 		db.session.commit()
 		return redirect('/admin')
-	return render_template('edit_book.html', title = 'Ajouter un livre a la base de donnees', form = form )
+	return render_template('edit_book.html', title = 'Ajouter un livre a la base de donnees', form = form, author_list = auts )
 
 @app.route('/search_amazon_book', methods = ['GET', 'POST'])
 def search_amazon_book():
@@ -162,7 +167,7 @@ def search_amazon_book():
 			except AttributeError:
 				dico["img"] = ''
 			try:
-				dico["ISBN"] = 	int(item.ItemAttributes.ISBN)
+				dico["ISBN"] = 	unicode(item.ItemAttributes.ISBN)
 			except AttributeError:
 				dico["ISBN"] = 0
 			try:
@@ -202,7 +207,7 @@ def add_amazon_book(asin):
 	except AttributeError:
 		dico["img"] = ''
 	try:
-		dico["ISBN"] = int(xml.Items.Item.ItemAttributes.ISBN)
+		dico["ISBN"] = unicode(xml.Items.Item.ItemAttributes.ISBN)
 	except AttributeError:
 		dico["ISBN"] = 0
 	try:
@@ -242,9 +247,14 @@ def add_amazon_book(asin):
 		dico["pages"] = ''
 	try:
 		dico["summary"] = unicode(xml.Items.Item.EditorialReviews.EditorialReview.Content)
-		print 'toto'
 	except AttributeError:
-		dico["summary"] = ''
+		try:
+			# sometime amazon doesn't give it the first time !
+			fetch2 = amazon.ItemLookup(IdType='ASIN', ItemId= asin, ResponseGroup='EditorialReview')
+			xml2 = objectify.fromstring(fetch2)
+			dico["summary"] = unicode(xml2.EditorialReview.Content)
+		except AttributeError:
+			dico["summary"] = ''
 	
 	#
 	# summary comes from the editorial review group search

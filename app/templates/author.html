@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if author.photo %}
-<img src="/photos/{{author.photo}}" alt="{{author.firstname}} {{author.familyname}}" width="150px"/>
+{% if author.photo_url %}
+<img src="{{author.photo_url}}" alt="{{author.firstname}} {{author.familyname}}" width="150px"/>
 {% endif %}
 
 <ul id="texte">
