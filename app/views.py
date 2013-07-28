@@ -2,21 +2,23 @@
 
 from flask import render_template, flash, redirect, request
 from flask.ext.wtf import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, FileField, file_allowed, validators, Required
-from flaskext.uploads import UploadSet, IMAGES, configure_uploads
+#from flaskext.uploads import UploadSet, IMAGES, configure_uploads
 from app import app, db
 from config import AWS_KEY,AMAZON_SECRET_KEY,LANG
 from models import Author, Book
-from forms import BookForm, AuthorForm, SearchForm, LoginForm
+from forms import BookForm, AuthorForm, SearchForm, LoginForm, DeleteForm
 from lxml import objectify
 import bottlenose
 import os
 from werkzeug import secure_filename
 
-photos = UploadSet('photos', IMAGES)
-configure_uploads(app, photos)
+#photos = UploadSet('photos', IMAGES)
+#configure_uploads(app, photos)
 
-covers = UploadSet('covers', IMAGES)
-configure_uploads(app, covers)
+#covers = UploadSet('covers', IMAGES)
+#configure_uploads(app, covers)
+
+### présentation
 
 @app.route('/')
 @app.route('/index')
@@ -29,19 +31,21 @@ def index():
 
 @app.route('/book/<number>')
 def book(number):
-	book = Book.query.filter_by(id = number).first()
-	if book.cover != None:
-		book.photo_url = covers.url(book.cover)
+	book = Book.query.get(number)
+	#if book.cover != None:
+		#book.photo_url = covers.url(book.cover)
 	return render_template('book.html', sitename = 'Ma Bibliotheque', title = book.title, book = book)
 
 @app.route('/author/<number>')
 def author(number):
-	author = Author.query.filter_by(id = number).first()
+	author = Author.query.get(number)
 	author.completename = author.firstname + ' ' + author.familyname
-	if author.photo != None:
-		author.photo_url = photos.url(author.photo)
+	#if author.photo != None:
+		#author.photo_url = photos.url(author.photo)
 	return render_template('author.html', sitename = 'Ma Bibliotheque', title = author.completename, author = author)
 
+### backend / admin
+	
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
 	form = LoginForm()
@@ -97,9 +101,39 @@ def admin():
 	dico["bk_len"] = len_tot / 100
 	return render_template("index_admin.html", sitename = 'Ma Bibliotheque', dico = dico)
 
-@app.route('/edit_author', methods = ['GET', 'POST'])
-def edit_author():
+@app.route('/delete_authors', methods = ['GET', 'POST'])
+def delete_authors():
+	form = DeleteForm()
+	auts = Author.query.with_entities(Author.id,Author.firstname,Author.familyname).all()
+	if form.validate_on_submit():
+		for item in request.form.getlist('delete'):
+			a = Author.query.get(item)
+			db.session.delete(a)
+		db.session.commit()
+		return redirect('/admin')
+	return render_template("delete_authors.html",
+	title = 'Eliminer un ou des auteurs de la bibliotheque',
+	sitename = 'Ma Bibliotheque',listing = auts, form = form)
+
+@app.route('/delete_books', methods = ['GET', 'POST'])
+def delete_books():
+	form = DeleteForm()
 	bk = Book.query.with_entities(Book.id,Book.title).all()
+	if form.validate_on_submit():
+		for item in request.form.getlist('delete'):
+			a = Book.query.get(item)
+			db.session.delete(a)
+		db.session.commit()
+		return redirect('/admin')
+	return render_template("delete_books.html", title = 'Eliminer un ou des livres de la bibliotheque', sitename = 'Ma Bibliotheque',listing = bk, form = form)
+
+@app.route('/edit_author/<number>', methods = ['GET', 'POST'])
+def edit_author(number):
+	if number == 'new':
+		author = []
+	else:
+		author = Author.query.get(number)
+	#bk = Book.query.with_entities(Book.id,Book.title).all()
 	form = AuthorForm()
 	if form.validate_on_submit():
 		a = Author(firstname= form.firstname.data, familyname= form.familyname.data)
@@ -118,34 +152,116 @@ def edit_author():
 		db.session.add(a)
 		db.session.commit()
 		return redirect('/admin')
-	return render_template('edit_author.html', title = 'Ajouter un auteur a la base de donnees', form = form, book_list = bk)
+	return render_template('edit_author.html', form = form, author = author)
 
-@app.route('/edit_book', methods = ['GET', 'POST'])
-def edit_book():
-	auts = Author.query.with_entities(Author.id,Author.firstname,Author.familyname).all()
+@app.route('/edit_book/<number>', methods = ['GET', 'POST'])
+def edit_book(number):
+	if number == 'new':
+		book = []
+	if number[0:7] == 'amazon:':
+		asin=unicode(number[7:])
+		amazon = bottlenose.Amazon(AWS_KEY,AMAZON_SECRET_KEY,LANG)
+		#
+		# we fetch the primary informations from large group amazon search
+		#
+		fetch = amazon.ItemLookup(IdType='ASIN', ItemId= asin, ResponseGroup='Large')
+		xml = objectify.fromstring(fetch)
+		book = dict()
+		try:
+			book["title"] = unicode(xml.Items.Item.ItemAttributes.Title)
+		except AttributeError:
+			book["title"] = ''
+		try:
+			book["img"] = unicode(xml.Items.Item.LargeImage.URL)
+		except AttributeError:
+			book["img"] = ''
+		try:
+			book["ISBN"] = unicode(xml.Items.Item.ItemAttributes.ISBN)
+		except AttributeError:
+			book["ISBN"] = 0
+		try:
+			book["EAN"] = int(xml.Items.Item.ItemAttributes.EAN)
+		except AttributeError:
+			book["EAN"] = 0
+		try:
+			book["publisher"] = unicode(xml.Items.Item.ItemAttributes.Publisher)
+		except AttributeError:
+			book["publisher"] = ''
+		
+		#
+		# amazon works in US units (hundreds-inches and pounds). I want them in kilos and cm, so I import the data in float and translate.
+		#
+		try:
+			thickness = float(xml.Items.Item.ItemAttributes.PackageDimensions.Height)
+			book["thickness"] = round(thickness * 2.54/100, 1)
+		except AttributeError:
+			book["thickness"] = ''
+		try:
+			length = float(xml.Items.Item.ItemAttributes.PackageDimensions.Length)
+			book["length"] = round(length * 2.54/100, 1)
+		except AttributeError:
+			book["length"] = ''
+		try:
+			width = float(xml.Items.Item.ItemAttributes.PackageDimensions.Width)
+			book["width"] = round(width * 2.54/100, 1)
+		except AttributeError:
+			book["width"] = ''
+		try:
+			mass = float(xml.Items.Item.ItemAttributes.PackageDimensions.Weight)
+			book["mass"] = round(mass * 0.45/100,2)
+		except AttributeError:
+			book["mass"] = ''
+		try:
+			book["pages"] = int(xml.Items.Item.ItemAttributes.NumberOfPages)
+		except AttributeError:
+			book["pages"] = ''
+		try:
+			book["summary"] = unicode(xml.Items.Item.EditorialReviews.EditorialReview.Content)
+		except AttributeError:
+			try:
+				# sometime amazon doesn't give it the first time !
+				fetch2 = amazon.ItemLookup(IdType='ASIN', ItemId= asin, ResponseGroup='EditorialReview')
+				xml2 = objectify.fromstring(fetch2)
+				book["summary"] = unicode(xml2.EditorialReview.Content)
+			except AttributeError:
+				book["summary"] = ''
+
+	else:
+		book = Book.query.get(number)
+		auts = Author.query.with_entities(Author.id,Author.firstname,Author.familyname).all()
 	form = BookForm()
 	if form.validate_on_submit():
 		b = Book(title = form.title.data)
 		# on ajoute les élements en dessous, mais s'ils ne sont pas là, c'est pas grave !
-		b.ean = form.ean.data
-		b.isbn = form.isbn.data
-		b.thickness = form.thickness.data
-		b.width = form.width.data
-		b.length = form.length.data
-		b.summary = form.summary.data
-		b.mass = form.mass.data
-		b.numberofpages = form.numberofpages.data
-		b.publisher = form.publisher.data
-		b.authors = form.authors_list.data
+		if form.ean.data != None:
+			b.ean = form.ean.data
+		if form.isbn.data != None:
+			b.isbn = form.isbn.data
+		if form.thickness.data != None:
+			b.thickness = form.thickness.data
+		if form.width.data != None:
+			b.width = form.width.data
+		if form.length.data != None:
+			b.length = form.length.data
+		if form.summary.data != None:
+			b.summary = form.summary.data
+		if form.mass.data != None:
+			b.mass = form.mass.data
+		if form.numberofpages.data != None:
+			b.numberofpages = form.numberofpages.data
+		if form.publisher.data != None:
+			b.publisher = form.publisher.data
+		if form.author_list.data != None:
+			b.add_author(int(form.author_list.data))
 		
-		if request.method == 'POST' and 'cover' in request.files:
-			filename = covers.save(request.files['cover'])
-			b.cover = filename
+		#if request.method == 'POST' and 'cover' in request.files:
+		#	filename = covers.save(request.files['cover'])
+		#	b.cover = filename
 		
 		db.session.add(b)
 		db.session.commit()
 		return redirect('/admin')
-	return render_template('edit_book.html', title = 'Ajouter un livre a la base de donnees', form = form, author_list = auts )
+	return render_template('edit_book.html', title = 'Ajouter un livre a la bibliothèque', form = form, book = book )
 
 @app.route('/search_amazon_book', methods = ['GET', 'POST'])
 def search_amazon_book():

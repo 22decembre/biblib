@@ -1,0 +1,14 @@
+{% extends "admin.html" %}
+{% block content %}
+<h1>Enlever un ou des auteurs de la bibliothèque</h1>
+<form action="" method="post" name="delete_authors" >
+    {{form.hidden_tag()}}
+<ul>
+{% for author in listing %}
+<li>{{form.delete(value = author.id)}} {{author.id}} - {{author.firstname}} {{author.familyname}}</li>
+{% endfor %}
+</ul>
+
+<p><input type="submit" value="Envoyez"></p>
+</form>
+{% endblock %}
