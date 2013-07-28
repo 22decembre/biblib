@@ -3,29 +3,34 @@
 {% extends "admin.html" %}
 
 {% block content %}
+{% if author.firstname %}
+<h1>Ajouter ou éditer l'auteur <i>{{author.firstname}} {{author.familyname}}</i> de la base de données</h1>
+    {% else %}
 <h1>Ajouter ou éditer un auteur de la base de données</h1>
-<form action="" method="post" name="add_author" enctype="multipart/form-data">
+{% endif %}
+<form action="" method="post" name="edit_author" enctype="multipart/form-data">
 
- {% if author %}
+ {% if author.img %}
  <img src="{{author.img}}" alt="{{author.firstname}} {{author.familyname}}" />
  <p>Cette image est enregistrée comme la photographie de {{author.firstname}} {{author.familyname}}. Si vous voulez enregistrer une autre image, il vous suffit d'utiliser le champ d'upload ci-dessous.</p>
  {% endif %}
  
     {{form.hidden_tag()}}
-    <p>Veuillez donner son prénom (obligatoire) : {{form.firstname}}</p>
-    <p>Nom de famille (obligatoire) : {{form.familyname}}</p>
+    <p>Veuillez donner son prénom (obligatoire) : {{form.firstname(value=author.firstname)}}</p>
+    <p>Nom de famille (obligatoire) : {{form.familyname(value=author.familyname)}}</p>
     
-    <p>Titre d'un livre : <select name="book_list">
+    <!-- <p>Titre d'un livre : <select name="book_list">
 	<option >---</option>
 	{% for book in book_list %}
 		<option value="{{book.id}}">{{book.id}} - {{book.title}}</option>
 	{% endfor %}
-    </select></p>
+    </select></p>-->
+    <p>Livre : {{form.book_list}}</p>
     
-    <p>Nationalité : {{form.nationality}}</p>
-    <p>Lieu de naissance : {{form.placeofbirth}}</p>
-    <p>Date de naissance (Y-m-d): {{form.dateofbirth}}</p>
-    <p>Site web : {{form.website}}</p>
+    <p>Nationalité : {{form.nationality(value=author.nationality)}}</p>
+    <p>Lieu de naissance : {{form.placeofbirth(value=author.placeofbirth)}}</p>
+    <p>Date de naissance (Y-m-d): {{form.dateofbirth(value=author.dateofbirth)}}</p>
+    <p>Site web : {{form.website(value=author.website)}}</p>
     <p>Photo : {{form.portrait}}</p>
     <p>Biographie : {{form.biography(cols="35", rows="20")|safe}}</p>
    <p><input type="submit" value="Envoyer"></p>

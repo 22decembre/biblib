@@ -9,9 +9,9 @@
 
 {% for book in listing %}
 <p>
-  <h2><a href='/add_amazon_book/{{book["ASIN"]}}' >{{book["title"]}}</a></h2>
+  <h2><a href='/edit_book/amazon:{{book["ASIN"]}}' >{{book["title"]}}</a></h2>
   {% if book["img"] %}
-  <a href='/add_amazon_book/{{book["ASIN"]}}' ><img src="{{book["img"]}}" align="left" alt ="Photo de couverture de {{book["title"]}}" /></a>
+  <a href='/edit_book/amazon:{{book["ASIN"]}}' ><img src="{{book["img"]}}" align="left" alt ="Photo de couverture de {{book["title"]}}" /></a>
   {% endif %}
   
   <ul>

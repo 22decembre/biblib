@@ -6,41 +6,38 @@
 <form action="" method="post" name="edit_book" enctype="multipart/form-data">
     {{form.hidden_tag()}}
 
-{% if dico %}
-<h1>Ajouter ou éditer le livre <i>{{dico.title}}</i> de la base de données</h1>
+{% if book.title %}
+<h1>Ajouter ou éditer le livre <i>{{book.title}}</i> de la base de données</h1>
     {% else %}
-    
-    {% set dico = [] %}
- <h1>Ajouter un livre à la base de données</h1>
+<h1>Ajouter un livre à la base de données</h1>
  {% endif %}
  
- {% if dico.img %}
- <img src="{{dico.img}}" alt="couverture de {{dico.title}}" />
- <p>Cette image sera enregistrée comme la couverture du livre {{dico.title}}, ou alors c'est celle qui se trouve déjà dans les fichiers du site. Si vous voulez enregistrer une autre image, il vous suffit d'utiliser le champ d'upload ci-dessous.</p>
+ {% if book.img %}
+ <img src="{{book.img}}" alt="couverture de {{book.title}}" />
+ <p>Cette image sera enregistrée comme la couverture du livre {{book.title}}, ou alors c'est celle qui se trouve déjà dans les fichiers du site. Si vous voulez enregistrer une autre image, il vous suffit d'utiliser le champ d'upload ci-dessous.</p>
  {% endif %}
-	<p>Titre (obligatoire) :	{{form.title(value=dico.title)}}</p>
+	<p>Titre (obligatoire) :	{{form.title(value=book.title)}}</p>
 	
-	<p>Auteur : <select name="author_list">
-	<option >---</option>
+	<!--<p>Auteur : <select name="author_list">
+	<option value=None >---</option>
 	{% for author in author_list %}
 		<option value="{{author.id}}">{{author.id}} - {{author.firstname}} {{author.familyname}}</option>
 	{% endfor %}
-    </select></p>
-	
-	<p>ISBN 13 (EAN) :		{{form.ean(value=dico.EAN)}}</p>
-	<p>ISBN :			{{form.isbn(value=dico.ISBN)}}</p>
-	<p>Maison d'édition :		{{form.publisher(value=dico.publisher)}}</p>
-	<p>epaisseur (cm) :		{{form.thickness(value=dico.thickness)}}</p>
-	<p>longueur (cm) :		{{form.length(value=dico.length)}}</p>
-	<p>largeur (cm) :		{{form.width(value=dico.width)}}</p>
-	<p>masse (kg) :			{{form.mass(value=dico.mass)}}</p>
-	<p>Nombre de pages :		{{form.numberofpages(value=dico.pages)}}</p>
-	<p>Couverture du livre :	{{form.cover(value=dico.img)}}</p>
+    </select></p>-->
+	<p>Auteur : {{form.author_list}}</p>
+	<p>ISBN 13 (EAN) :		{{form.ean(value=book.EAN)}}</p>
+	<p>ISBN :			{{form.isbn(value=book.ISBN)}}</p>
+	<p>Maison d'édition :		{{form.publisher(value=book.publisher)}}</p>
+	<p>epaisseur (cm) :		{{form.thickness(value=book.thickness)}}</p>
+	<p>longueur (cm) :		{{form.length(value=book.length)}}</p>
+	<p>largeur (cm) :		{{form.width(value=book.width)}}</p>
+	<p>masse (kg) :			{{form.mass(value=book.mass)}}</p>
+	<p>Nombre de pages :		{{form.numberofpages(value=book.pages)}}</p>
 	
 	<!-- I am using textarea there and not jinga2 thing, because I want to prepopulate this thing !
 	take care : there's nothing about this textarea in forms.py, but there's in view !
 	it's because form doesn't generate it, but view take it to register in the db. -->
-    <p>Quatrième de couverture :	<textarea name="summary" rows="20" cols="50">{{dico.summary}}</textarea></p>
+    <p>Quatrième de couverture :	<textarea name="summary" rows="20" cols="50">{{book.summary}}</textarea></p>
     <p><input type="submit" value="Envoyez"></p>
 </form>
 {% endblock %}
