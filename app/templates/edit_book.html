@@ -7,9 +7,9 @@
     {{form.hidden_tag()}}
 
 {% if book.title %}
-<h1>Ajouter ou éditer le livre <i>{{book.title}}</i> de la base de données</h1>
+<h1>Ajouter ou éditer le livre <i>{{book.title}}</i> de la bibliothèque</h1>
     {% else %}
-<h1>Ajouter un livre à la base de données</h1>
+<h1>Ajouter un livre à la bibliothèque</h1>
  {% endif %}
  
  {% if book.img %}
@@ -18,12 +18,6 @@
  {% endif %}
 	<p>Titre (obligatoire) :	{{form.title(value=book.title)}}</p>
 	
-	<!--<p>Auteur : <select name="author_list">
-	<option value=None >---</option>
-	{% for author in author_list %}
-		<option value="{{author.id}}">{{author.id}} - {{author.firstname}} {{author.familyname}}</option>
-	{% endfor %}
-    </select></p>-->
 	<p>Auteur : {{form.author_list}}</p>
 	<p>ISBN 13 (EAN) :		{{form.ean(value=book.EAN)}}</p>
 	<p>ISBN :			{{form.isbn(value=book.ISBN)}}</p>

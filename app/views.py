@@ -39,10 +39,9 @@ def book(number):
 @app.route('/author/<number>')
 def author(number):
 	author = Author.query.get(number)
-	author.completename = author.firstname + ' ' + author.familyname
 	#if author.photo != None:
 		#author.photo_url = photos.url(author.photo)
-	return render_template('author.html', sitename = 'Ma Bibliotheque', title = author.completename, author = author)
+	return render_template('author.html', sitename = 'Ma Bibliotheque', title = author, author = author)
 
 ### backend / admin
 	
@@ -57,12 +56,13 @@ def login():
 @app.route('/admin')
 def admin():
 	# compter les auteurs
+	bk = Book.query.with_entities(Book.id,Book.title).all()
 	aut = Author.query.all()
 	authors_number = int()
 	for a in aut:
 		authors_number += 1
 	# compter les livres et volumes/masses
-	bk = Book.query.with_entities(Book.length,Book.width,Book.thickness,Book.mass).all()
+	bk = Book.query.with_entities(Book.length,Book.width,Book.thickness,Book.mass,Book.id,Book.title).all()
 	#bk = Book.query(width,length,mass).all()
 	books_number = int()
 	mass_tot = float()
@@ -99,12 +99,12 @@ def admin():
 		dico["bk_vol_unit"] = 'litres'
 	# longueur
 	dico["bk_len"] = len_tot / 100
-	return render_template("index_admin.html", sitename = 'Ma Bibliotheque', dico = dico)
+	return render_template("index_admin.html", sitename = 'Ma Bibliotheque', dico = dico, books_list = bk, authors_list = aut)
 
 @app.route('/delete_authors', methods = ['GET', 'POST'])
 def delete_authors():
 	form = DeleteForm()
-	auts = Author.query.with_entities(Author.id,Author.firstname,Author.familyname).all()
+	auts = Author.query.all()
 	if form.validate_on_submit():
 		for item in request.form.getlist('delete'):
 			a = Author.query.get(item)
@@ -131,8 +131,10 @@ def delete_books():
 def edit_author(number):
 	if number == 'new':
 		author = []
+		title = 'Ajouter un auteur dans la bibliotheque'
 	else:
 		author = Author.query.get(number)
+		title = author
 	#bk = Book.query.with_entities(Book.id,Book.title).all()
 	form = AuthorForm()
 	if form.validate_on_submit():
@@ -143,8 +145,7 @@ def edit_author(number):
 		a.placeofbirth = form.placeofbirth.data
 		a.website = form.website.data
 		a.biography = form.biography.data
-		a.books = form.book_list.data
-		
+		a.add_book(form.book_list.data)
 		if request.method == 'POST' and 'portrait' in request.files:
 			filename = photos.save(request.files['portrait'])
 			a.photo = filename
@@ -152,13 +153,14 @@ def edit_author(number):
 		db.session.add(a)
 		db.session.commit()
 		return redirect('/admin')
-	return render_template('edit_author.html', form = form, author = author)
+	return render_template('edit_author.html', form = form, author = author, title = title)
 
 @app.route('/edit_book/<number>', methods = ['GET', 'POST'])
 def edit_book(number):
 	if number == 'new':
 		book = []
-	if number[0:7] == 'amazon:':
+		title = 'Ajouter un livre dans la bibliotheque'
+	elif number[0:7] == 'amazon:':
 		asin=unicode(number[7:])
 		amazon = bottlenose.Amazon(AWS_KEY,AMAZON_SECRET_KEY,LANG)
 		#
@@ -225,10 +227,11 @@ def edit_book(number):
 				book["summary"] = unicode(xml2.EditorialReview.Content)
 			except AttributeError:
 				book["summary"] = ''
+		title = 'Ajouter un livre d\'Amazon dans la bibliotheque'
 
 	else:
 		book = Book.query.get(number)
-		auts = Author.query.with_entities(Author.id,Author.firstname,Author.familyname).all()
+		title = book.title
 	form = BookForm()
 	if form.validate_on_submit():
 		b = Book(title = form.title.data)
@@ -252,7 +255,7 @@ def edit_book(number):
 		if form.publisher.data != None:
 			b.publisher = form.publisher.data
 		if form.author_list.data != None:
-			b.add_author(int(form.author_list.data))
+			b.add_author(int(form.author_list.data.id))
 		
 		#if request.method == 'POST' and 'cover' in request.files:
 		#	filename = covers.save(request.files['cover'])
@@ -261,7 +264,7 @@ def edit_book(number):
 		db.session.add(b)
 		db.session.commit()
 		return redirect('/admin')
-	return render_template('edit_book.html', title = 'Ajouter un livre a la bibliothèque', form = form, book = book )
+	return render_template('edit_book.html', form = form, book = book, title = title)
 
 @app.route('/search_amazon_book', methods = ['GET', 'POST'])
 def search_amazon_book():
@@ -304,92 +307,3 @@ def search_amazon_book():
 			listing.append(dico)
 		return render_template('list_amazon_results.html',listing = listing)
 	return render_template('search_amazon_book.html', title = 'Chercher un livre dans la base de donnees mondiale d\'Amazon', form = form )
-
-@app.route('/add_amazon_book/<asin>', methods = ['GET', 'POST'])
-def add_amazon_book(asin):
-	amazon = bottlenose.Amazon(AWS_KEY,AMAZON_SECRET_KEY,LANG)
-	#
-	# we fetch the primary informations from large group amazon search
-	#
-	fetch = amazon.ItemLookup(IdType='ASIN', ItemId= asin, ResponseGroup='Large')
-	xml = objectify.fromstring(fetch)
-	dico = dict()
-	try:
-		dico["title"] = unicode(xml.Items.Item.ItemAttributes.Title)
-	except AttributeError:
-		dico["title"] = ''
-	try:
-		dico["img"] = unicode(xml.Items.Item.LargeImage.URL)
-	except AttributeError:
-		dico["img"] = ''
-	try:
-		dico["ISBN"] = unicode(xml.Items.Item.ItemAttributes.ISBN)
-	except AttributeError:
-		dico["ISBN"] = 0
-	try:
-		dico["EAN"] = int(xml.Items.Item.ItemAttributes.EAN)
-	except AttributeError:
-		dico["EAN"] = 0
-	try:
-		dico["publisher"] = unicode(xml.Items.Item.ItemAttributes.Publisher)
-	except AttributeError:
-		dico["publisher"] = ''
-	#
-	# amazon works in US units (hundreds-inches and pounds). I want them in kilos and cm, so I import the data in float and translate.
-	#
-	try:
-		thickness = float(xml.Items.Item.ItemAttributes.PackageDimensions.Height)
-		dico["thickness"] = round(thickness * 2.54/100, 1)
-	except AttributeError:
-		dico["thickness"] = ''
-	try:
-		length = float(xml.Items.Item.ItemAttributes.PackageDimensions.Length)
-		dico["length"] = round(length * 2.54/100, 1)
-	except AttributeError:
-		dico["length"] = ''
-	try:
-		width = float(xml.Items.Item.ItemAttributes.PackageDimensions.Width)
-		dico["width"] = round(width * 2.54/100, 1)
-	except AttributeError:
-		dico["width"] = ''
-	try:
-		mass = float(xml.Items.Item.ItemAttributes.PackageDimensions.Weight)
-		dico["mass"] = round(mass * 0.45/100,2)
-	except AttributeError:
-		dico["mass"] = ''
-	try:
-		dico["pages"] = int(xml.Items.Item.ItemAttributes.NumberOfPages)
-	except AttributeError:
-		dico["pages"] = ''
-	try:
-		dico["summary"] = unicode(xml.Items.Item.EditorialReviews.EditorialReview.Content)
-	except AttributeError:
-		try:
-			# sometime amazon doesn't give it the first time !
-			fetch2 = amazon.ItemLookup(IdType='ASIN', ItemId= asin, ResponseGroup='EditorialReview')
-			xml2 = objectify.fromstring(fetch2)
-			dico["summary"] = unicode(xml2.EditorialReview.Content)
-		except AttributeError:
-			dico["summary"] = ''
-	
-	#
-	# summary comes from the editorial review group search
-	#
-	#search = amazon.ItemLookup(IdType='ASIN', ItemId= number, ResponseGroup='Large')
-	form = BookForm()
-	if form.validate_on_submit():
-		b = Book(title = form.title.data)	#
-		# on ajoute les élements en dessous, mais s'ils ne sont pas là, c'est pas grave !
-		b.ean = form.ean.data			#
-		b.isbn = form.isbn.data 		#
-		b.thickness = form.thickness.data	#
-		b.width = form.width.data		#
-		b.length = form.length.data		#
-		b.summary = form.summary.data
-		b.mass = form.mass.data			#
-		b.numberofpages = form.numberofpages.data#
-		b.publisher = form.publisher.data	#
-		db.session.add(b)
-		db.session.commit()
-		return redirect('/admin')
-	return render_template('edit_book.html', form = form, dico = dico)

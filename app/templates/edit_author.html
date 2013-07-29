@@ -4,9 +4,9 @@
 
 {% block content %}
 {% if author.firstname %}
-<h1>Ajouter ou éditer l'auteur <i>{{author.firstname}} {{author.familyname}}</i> de la base de données</h1>
+<h1>Ajouter ou éditer l'auteur <i>{{author.firstname}} {{author.familyname}}</i> de la bibliothèque</h1>
     {% else %}
-<h1>Ajouter ou éditer un auteur de la base de données</h1>
+<h1>Ajouter un auteur dans la bibliothèque</h1>
 {% endif %}
 <form action="" method="post" name="edit_author" enctype="multipart/form-data">
 
@@ -19,12 +19,6 @@
     <p>Veuillez donner son prénom (obligatoire) : {{form.firstname(value=author.firstname)}}</p>
     <p>Nom de famille (obligatoire) : {{form.familyname(value=author.familyname)}}</p>
     
-    <!-- <p>Titre d'un livre : <select name="book_list">
-	<option >---</option>
-	{% for book in book_list %}
-		<option value="{{book.id}}">{{book.id}} - {{book.title}}</option>
-	{% endfor %}
-    </select></p>-->
     <p>Livre : {{form.book_list}}</p>
     
     <p>Nationalité : {{form.nationality(value=author.nationality)}}</p>
@@ -32,7 +26,7 @@
     <p>Date de naissance (Y-m-d): {{form.dateofbirth(value=author.dateofbirth)}}</p>
     <p>Site web : {{form.website(value=author.website)}}</p>
     <p>Photo : {{form.portrait}}</p>
-    <p>Biographie : {{form.biography(cols="35", rows="20")|safe}}</p>
+    <p>Biographie : <textarea name="biography" cols="35" rows="20">{{author.biography}}</textarea></p>
    <p><input type="submit" value="Envoyer"></p>
 </form>
 {% endblock %}

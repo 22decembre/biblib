@@ -14,10 +14,10 @@ books = collections.namedtuple('books', 'id, title')
 #photos = UploadSet('photos', IMAGES)
 
 def possible_author():
-    return Author.query.with_entities(Author.id)
+    return Author.query
 
 def possible_book():
-    return Book.query.with_entities(Book.id)
+    return Book.query
 
 class LoginForm(Form):
     openid = TextField('openid', validators = [Required()])

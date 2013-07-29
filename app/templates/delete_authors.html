@@ -5,7 +5,7 @@
     {{form.hidden_tag()}}
 <ul>
 {% for author in listing %}
-<li>{{form.delete(value = author.id)}} {{author.id}} - {{author.firstname}} {{author.familyname}}</li>
+<li>{{form.delete(value = author.id)}} {{author.id}} - {{author}}</li>
 {% endfor %}
 </ul>
 

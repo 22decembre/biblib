@@ -10,7 +10,7 @@
 <ul id="texte">
 <li><h2>Titre : </h2><p>{{book.title}}</p></li>
 
-{% for author in authors %}
+{% for author in book.authors %}
 <li><h3>Auteur : </h3><p><a href="/author/{{author.id}}">{{author.firstname}} {{author.familyname}}</a></p></li>
 {% endfor %}
 </li>
