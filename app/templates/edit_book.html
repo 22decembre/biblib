@@ -16,22 +16,40 @@
  <img src="{{book.img}}" alt="couverture de {{book.title}}" />
  <p>Cette image sera enregistrée comme la couverture du livre {{book.title}}, ou alors c'est celle qui se trouve déjà dans les fichiers du site. Si vous voulez enregistrer une autre image, il vous suffit d'utiliser le champ d'upload ci-dessous.</p>
  {% endif %}
-	<p>Titre (obligatoire) :	{{form.title(value=book.title)}}</p>
+ 
+ <aside>
+	<p><label for="title">Titre (obligatoire) : </label>{{form.title(value=book.title)}}</p>
+	<p><label for="ean">ISBN 13 (EAN) : </label>{{form.ean(value=book.ean)}}</p>
+	<p><label for="isbn">ISBN : </label>{{form.isbn(value=book.isbn)}}</p>
+	<p><label for="publisher">Maison d'édition : </label>{{form.publisher(value=book.publisher)}}</p>
+	<p><label for="thickness">epaisseur (cm) : </label>{{form.thickness(value=book.thickness)}}</p>
+	<p><label for="length">longueur (cm) : </label>{{form.length(value=book.length)}}</p>
+	<p><label for="width">largeur (cm) : </label>{{form.width(value=book.width)}}</p>
+	<p><label for="mass">masse (kg) : </label>{{form.mass(value=book.mass)}}</p>
+	<p><label for="numberofpages">Nombre de pages : </label>{{form.numberofpages(value=book.numberpages)}}</p>
+	<p><label for="cover">Couverture du livre : </label>{{form.cover}}</p>
+</aside>
+<aside>
+<h1>Auteurs</h1>
+	{% if book.authors %}
+	</h3>Auteurs à enlever</h3>
+	<ul>
+	{% for author in book.authors %}
+	<li>{{form.authortodelete(value = author.id)}} {{author.id}} - {{author}}</li>
+	{% endfor %}
+	</ul>
+	{% endif %}
 	
-	<p>Auteur : {{form.author_list}}</p>
-	<p>ISBN 13 (EAN) :		{{form.ean(value=book.EAN)}}</p>
-	<p>ISBN :			{{form.isbn(value=book.ISBN)}}</p>
-	<p>Maison d'édition :		{{form.publisher(value=book.publisher)}}</p>
-	<p>epaisseur (cm) :		{{form.thickness(value=book.thickness)}}</p>
-	<p>longueur (cm) :		{{form.length(value=book.length)}}</p>
-	<p>largeur (cm) :		{{form.width(value=book.width)}}</p>
-	<p>masse (kg) :			{{form.mass(value=book.mass)}}</p>
-	<p>Nombre de pages :		{{form.numberofpages(value=book.pages)}}</p>
+	<h3>Auteurs à ajouter</h3>
+	<p>Auteur   : {{form.authortoadd}}</p>
+	<p>Auteur 2 : {{form.authortoadd}}</p>
+	<p>Auteur 3 : {{form.authortoadd}}</p>
+</aside>
 	
 	<!-- I am using textarea there and not jinga2 thing, because I want to prepopulate this thing !
 	take care : there's nothing about this textarea in forms.py, but there's in view !
 	it's because form doesn't generate it, but view take it to register in the db. -->
-    <p>Quatrième de couverture :	<textarea name="summary" rows="20" cols="50">{{book.summary}}</textarea></p>
+    <p><label for="summary">Quatrième de couverture : </label><textarea name="summary" rows="20" cols="50">{{book.summary}}</textarea></p>
     <p><input type="submit" value="Envoyez"></p>
 </form>
 {% endblock %}

@@ -3,15 +3,15 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if book.photo_url %}
-<img src="{{book.photo_url}}" alt="couverture de {{book.title}}" width="150px"/>
+{% if book.img %}
+<img src="/covers/{{book.id}}" alt="couverture de {{book.title}}" width="150px"/>
 {% endif %}
 
 <ul id="texte">
 <li><h2>Titre : </h2><p>{{book.title}}</p></li>
 
 {% for author in book.authors %}
-<li><h3>Auteur : </h3><p><a href="/author/{{author.id}}">{{author.firstname}} {{author.familyname}}</a></p></li>
+<li><h3>Auteur : </h3><p><a href="/author/{{author.id}}">{{author}}</a></p></li>
 {% endfor %}
 </li>
 

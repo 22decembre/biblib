@@ -22,12 +22,12 @@ class Author(db.Model):
 		return rep.title()
 	
 	def add_book(self, book):
-		print book
 		self.books.append(book)
 		return self
-	#def delete(self):
-		
 	
+	def remove_book(self, book):
+		self.books.remove(author)
+		return self
 
 class Book(db.Model):
 	id = db.Column(db.Integer, primary_key = True)
@@ -47,6 +47,10 @@ class Book(db.Model):
 	def __repr__(self):
 		return '<%r>' % (self.title)
 
+	def remove_author(self, author):
+		self.authors.remove(author)
+		return self
+	
 	def add_author(self, author):
 		self.authors.append(author)
 		return self

@@ -2,7 +2,6 @@
 
 from flask import render_template, flash, redirect, request
 from flask.ext.wtf import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, FileField, file_allowed, validators, Required
-#from flaskext.uploads import UploadSet, IMAGES, configure_uploads
 from app import app, db
 from config import AWS_KEY,AMAZON_SECRET_KEY,LANG
 from models import Author, Book
@@ -10,20 +9,14 @@ from forms import BookForm, AuthorForm, SearchForm, LoginForm, DeleteForm
 from lxml import objectify
 import bottlenose
 import os
-from werkzeug import secure_filename
-
-#photos = UploadSet('photos', IMAGES)
-#configure_uploads(app, photos)
-
-#covers = UploadSet('covers', IMAGES)
-#configure_uploads(app, covers)
 
 ### présentation
 
 @app.route('/')
 @app.route('/index')
 def index():
-	bk = Book.query.with_entities(Book.id,Book.title).all()
+	bk = Book.query.with_entities(Book.id,Book.title,Book.authors).all()
+	auts = Author.query.with_entities(Author.id,Author.firstname,Author.familyname,Author.books).all() 
 	return render_template("index.html",
 	title = 'Index',
 	sitename = 'Ma Bibliotheque',books = bk)
@@ -32,15 +25,15 @@ def index():
 @app.route('/book/<number>')
 def book(number):
 	book = Book.query.get(number)
-	#if book.cover != None:
-		#book.photo_url = covers.url(book.cover)
+	if os.path.exists('app/static/covers/' + str(book.id)):
+		book.img = True
 	return render_template('book.html', sitename = 'Ma Bibliotheque', title = book.title, book = book)
 
 @app.route('/author/<number>')
 def author(number):
 	author = Author.query.get(number)
-	#if author.photo != None:
-		#author.photo_url = photos.url(author.photo)
+	if os.path.exists('app/static/photos/' + str(author.id)):
+		author.img = True
 	return render_template('author.html', sitename = 'Ma Bibliotheque', title = author, author = author)
 
 ### backend / admin
@@ -130,35 +123,64 @@ def delete_books():
 @app.route('/edit_author/<number>', methods = ['GET', 'POST'])
 def edit_author(number):
 	if number == 'new':
-		author = []
+		author = Author()
 		title = 'Ajouter un auteur dans la bibliotheque'
 	else:
 		author = Author.query.get(number)
 		title = author
-	#bk = Book.query.with_entities(Book.id,Book.title).all()
+	#global author
+	#a = author
 	form = AuthorForm()
+	update = False
 	if form.validate_on_submit():
-		a = Author(firstname= form.firstname.data, familyname= form.familyname.data)
-		# on ajoute les élements en dessous, mais s'ils ne sont pas là, c'est pas grave !
-		a.nationality= form.nationality.data
-		a.dateofbirth= form.dateofbirth.data
-		a.placeofbirth = form.placeofbirth.data
-		a.website = form.website.data
-		a.biography = form.biography.data
-		a.add_book(form.book_list.data)
-		if request.method == 'POST' and 'portrait' in request.files:
-			filename = photos.save(request.files['portrait'])
-			a.photo = filename
+		print form.errors
+		author.firstname = unicode(form.firstname.data)
+		author.familyname = unicode(form.familyname.data)
+		if form.nationality.data != author.nationality:
+			author.nationality= unicode(form.nationality.data)
+			update = True
+		#a.dateofbirth= form.dateofbirth.data
+		if form.placeofbirth.data != author.placeofbirth:
+			author.placeofbirth = unicode(form.placeofbirth.data)
+			update = True
+		if form.website.data != author.website:
+			author.website = unicode(form.website.data)
+			update = True
+		if form.biography.data != author.biography:
+			author.biography = unicode(form.biography.data)
+			update = True
+
+		# gestion des livres
+		for item in request.form.getlist('booktodelete'):
+			a = Book.query.get(item)
+			author.remove_book(a)
 		
-		db.session.add(a)
-		db.session.commit()
+		for item in request.form.getlist('booktoadd'):
+			a = Book.query.get(item)
+			author.add_book(a)
+		
+		if update:
+			db.session.add(author)
+			db.session.commit()
+			db.session.refresh(author)
+		
+		# the photo will overwrite the previous if existing.
+		# thus, only one per author and nothing else to check
+		if request.method == 'POST' and 'portrait' in request.files:
+			fileurl = 'app/static/photos/' + str(author.id)
+			image = request.files['portrait'].save(fileurl)
+		
 		return redirect('/admin')
 	return render_template('edit_author.html', form = form, author = author, title = title)
 
 @app.route('/edit_book/<number>', methods = ['GET', 'POST'])
 def edit_book(number):
 	if number == 'new':
-		book = []
+		book = Book()
+		book.mass = 0
+		book.width = 0
+		book.length = 0
+		book.thickness = 0
 		title = 'Ajouter un livre dans la bibliotheque'
 	elif number[0:7] == 'amazon:':
 		asin=unicode(number[7:])
@@ -168,101 +190,125 @@ def edit_book(number):
 		#
 		fetch = amazon.ItemLookup(IdType='ASIN', ItemId= asin, ResponseGroup='Large')
 		xml = objectify.fromstring(fetch)
-		book = dict()
+		book = Book()
 		try:
-			book["title"] = unicode(xml.Items.Item.ItemAttributes.Title)
+			book.title = unicode(xml.Items.Item.ItemAttributes.Title)
 		except AttributeError:
-			book["title"] = ''
+			book.title = ''
+		#try:
+		#	book.img = unicode(xml.Items.Item.LargeImage.URL)
+		#except AttributeError:
+		#	book["img"] = ''
 		try:
-			book["img"] = unicode(xml.Items.Item.LargeImage.URL)
+			book.isbn = unicode(xml.Items.Item.ItemAttributes.ISBN)
 		except AttributeError:
-			book["img"] = ''
+			book.isbn = ''
 		try:
-			book["ISBN"] = unicode(xml.Items.Item.ItemAttributes.ISBN)
+			book.ean = unicode(xml.Items.Item.ItemAttributes.EAN)
 		except AttributeError:
-			book["ISBN"] = 0
+			book.ean = ''
 		try:
-			book["EAN"] = int(xml.Items.Item.ItemAttributes.EAN)
+			book.publisher = unicode(xml.Items.Item.ItemAttributes.Publisher)
 		except AttributeError:
-			book["EAN"] = 0
-		try:
-			book["publisher"] = unicode(xml.Items.Item.ItemAttributes.Publisher)
-		except AttributeError:
-			book["publisher"] = ''
+			book.publisher = ''
 		
 		#
 		# amazon works in US units (hundreds-inches and pounds). I want them in kilos and cm, so I import the data in float and translate.
 		#
 		try:
 			thickness = float(xml.Items.Item.ItemAttributes.PackageDimensions.Height)
-			book["thickness"] = round(thickness * 2.54/100, 1)
+			book.thickness = round(thickness * 2.54/100, 1)
 		except AttributeError:
-			book["thickness"] = ''
+			book.thickness = ''
 		try:
 			length = float(xml.Items.Item.ItemAttributes.PackageDimensions.Length)
-			book["length"] = round(length * 2.54/100, 1)
+			book.length = round(length * 2.54/100, 1)
 		except AttributeError:
-			book["length"] = ''
+			book.length = ''
 		try:
 			width = float(xml.Items.Item.ItemAttributes.PackageDimensions.Width)
-			book["width"] = round(width * 2.54/100, 1)
+			book.width = round(width * 2.54/100, 1)
 		except AttributeError:
-			book["width"] = ''
+			book.width = ''
 		try:
 			mass = float(xml.Items.Item.ItemAttributes.PackageDimensions.Weight)
-			book["mass"] = round(mass * 0.45/100,2)
+			book.mass = round(mass * 0.45/100,2)
 		except AttributeError:
-			book["mass"] = ''
+			book.mass = ''
 		try:
-			book["pages"] = int(xml.Items.Item.ItemAttributes.NumberOfPages)
+			book.numberofpages = int(xml.Items.Item.ItemAttributes.NumberOfPages)
 		except AttributeError:
-			book["pages"] = ''
+			book.numberofpages = ''
 		try:
-			book["summary"] = unicode(xml.Items.Item.EditorialReviews.EditorialReview.Content)
+			book.summary = unicode(xml.Items.Item.EditorialReviews.EditorialReview.Content)
 		except AttributeError:
-			try:
+			#try:
 				# sometime amazon doesn't give it the first time !
-				fetch2 = amazon.ItemLookup(IdType='ASIN', ItemId= asin, ResponseGroup='EditorialReview')
-				xml2 = objectify.fromstring(fetch2)
-				book["summary"] = unicode(xml2.EditorialReview.Content)
-			except AttributeError:
-				book["summary"] = ''
+				#fetch2 = amazon.ItemLookup(IdType='ASIN', ItemId= asin, ResponseGroup='EditorialReview')
+				#xml2 = objectify.fromstring(fetch2)
+				#book["summary"] = unicode(xml2.EditorialReview.Content)
+			#except AttributeError:
+			book.summary = ''
 		title = 'Ajouter un livre d\'Amazon dans la bibliotheque'
 
 	else:
 		book = Book.query.get(number)
 		title = book.title
 	form = BookForm()
+	update = False
 	if form.validate_on_submit():
-		b = Book(title = form.title.data)
+		print form.errors
+		book.title = unicode(form.title.data)
 		# on ajoute les élements en dessous, mais s'ils ne sont pas là, c'est pas grave !
-		if form.ean.data != None:
-			b.ean = form.ean.data
-		if form.isbn.data != None:
-			b.isbn = form.isbn.data
-		if form.thickness.data != None:
-			b.thickness = form.thickness.data
-		if form.width.data != None:
-			b.width = form.width.data
-		if form.length.data != None:
-			b.length = form.length.data
-		if form.summary.data != None:
-			b.summary = form.summary.data
-		if form.mass.data != None:
-			b.mass = form.mass.data
-		if form.numberofpages.data != None:
-			b.numberofpages = form.numberofpages.data
-		if form.publisher.data != None:
-			b.publisher = form.publisher.data
-		if form.author_list.data != None:
-			b.add_author(int(form.author_list.data.id))
+		if form.ean.data != book.ean:
+			book.ean = unicode(form.ean.data)
+			update = True
+		if form.isbn.data != book.isbn:
+			book.isbn = unicode(form.isbn.data)
+			update = True
+		if form.thickness.data != book.thickness:
+			book.thickness = unicode(form.thickness.data)
+			update = True
+		if form.width.data != book.width:
+			book.width = unicode(form.width.data)
+			update = True
+		if form.length.data != book.length:
+			book.length = form.length.data
+			update = True
+		if form.summary.data != book.summary:
+			book.summary = unicode(form.summary.data)
+			update = True
+		if form.mass.data != book.mass:
+			book.mass = form.mass.data
+			update = True
+		if form.numberofpages.data != book.numberofpages:
+			book.numberofpages = int(form.numberofpages.data)
+			update = True
+		if form.publisher.data != book.publisher:
+			book.publisher = unicode(form.publisher.data)
+			update = True
+		# gestion des auteurs
+		if form.authortodelete != None:
+			for item in request.form.getlist('authortodelete'):
+				a = Author.query.get(item)
+				book.remove_author(a)
+				update = True
+		if form.authortoadd:
+			for item in request.form.getlist('authortoadd'):
+				a = Author.query.get(item)
+				book.add_author(a)
+				update = True
+		# adding the book to the db
+		if update:
+			db.session.add(book)
+			db.session.commit()
+			db.session.refresh(book)
 		
-		#if request.method == 'POST' and 'cover' in request.files:
-		#	filename = covers.save(request.files['cover'])
-		#	b.cover = filename
-		
-		db.session.add(b)
-		db.session.commit()
+		# same as author
+		if request.method == 'POST' and 'cover' in request.files:
+			fileurl = 'app/static/covers/' + str(book.id)
+			image = request.files['cover'].save(fileurl)
+				
 		return redirect('/admin')
 	return render_template('edit_book.html', form = form, book = book, title = title)
 

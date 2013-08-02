@@ -1,31 +1,44 @@
- 
 <!-- extend from admin layout -->
 {% extends "admin.html" %}
 
 {% block content %}
 {% if author.firstname %}
-<h1>Ajouter ou éditer l'auteur <i>{{author.firstname}} {{author.familyname}}</i> de la bibliothèque</h1>
+<h1>Ajouter ou éditer l'auteur <i>{{author}}</i> de la bibliothèque</h1>
     {% else %}
 <h1>Ajouter un auteur dans la bibliothèque</h1>
 {% endif %}
 <form action="" method="post" name="edit_author" enctype="multipart/form-data">
 
  {% if author.img %}
- <img src="{{author.img}}" alt="{{author.firstname}} {{author.familyname}}" />
- <p>Cette image est enregistrée comme la photographie de {{author.firstname}} {{author.familyname}}. Si vous voulez enregistrer une autre image, il vous suffit d'utiliser le champ d'upload ci-dessous.</p>
+ <img src="{{author.img}}" alt="{{author}}" />
+ <p>Cette image est enregistrée comme la photographie de {{author}}. Si vous voulez enregistrer une autre image, il vous suffit d'utiliser le champ d'upload ci-dessous.</p>
  {% endif %}
  
     {{form.hidden_tag()}}
-    <p>Veuillez donner son prénom (obligatoire) : {{form.firstname(value=author.firstname)}}</p>
-    <p>Nom de famille (obligatoire) : {{form.familyname(value=author.familyname)}}</p>
-    
-    <p>Livre : {{form.book_list}}</p>
-    
-    <p>Nationalité : {{form.nationality(value=author.nationality)}}</p>
-    <p>Lieu de naissance : {{form.placeofbirth(value=author.placeofbirth)}}</p>
-    <p>Date de naissance (Y-m-d): {{form.dateofbirth(value=author.dateofbirth)}}</p>
-    <p>Site web : {{form.website(value=author.website)}}</p>
+    <aside>
+    <p><label for="firstname">Veuillez donner son prénom (obligatoire) : </label>{{form.firstname(value=author.firstname)}}</p>
+    <p><label for="familyname">Nom de famille (obligatoire) : </label>{{form.familyname(value=author.familyname)}}</p>
+    <p><label for="nationality">Nationalité : </label>{{form.nationality(value=author.nationality)}}</p>
+    <p><label for="placeofbirth">Lieu de naissance : </label>{{form.placeofbirth(value=author.placeofbirth)}}</p>
+    <p><label for="website">Site web : </label>{{form.website(value=author.website)}}</p>
     <p>Photo : {{form.portrait}}</p>
+    </aside>
+    <aside>
+    <h1>Livres</h1>
+    {% if author.books %}
+    <h3>Livres à enlever</h3>
+     <ul>
+    {% for book in author.books %}
+    <li>{{form.booktodelete(value = book.id)}} {{book.id}} - {{book.title}}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+    
+    <h3>Livres à ajouter</h3>
+    <p>Livre   : {{form.booktoadd}}</p>
+    <p>Livre 2 : {{form.booktoadd}}</p>
+    <p>Livre 3 : {{form.booktoadd}}</p>
+    </aside>
     <p>Biographie : <textarea name="biography" cols="35" rows="20">{{author.biography}}</textarea></p>
    <p><input type="submit" value="Envoyer"></p>
 </form>

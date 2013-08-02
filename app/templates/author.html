@@ -1,16 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 
-{% if author.photo_url %}
-<img src="{{author.photo_url}}" alt="{{author.firstname}} {{author.familyname}}" width="150px"/>
+{% if author.img %}
+<img src="/static/photos/{{author.id}}" alt="{{author}}" width="150px"/>
 {% endif %}
 
 <ul id="texte">
-<li><h2>Auteur : </h2><p>{{author.firstname}} {{author.familyname}}</p></li>
+<li><h2>Auteur : </h2><p>{{author}}</p></li>
 
-<li><h3>Livres : </h3>
 {% for book in author.books %}
-<p><a href="/book/{{book.id}}">{{book.title}}</a></p>
+<li><h3>Livre : </h3><p><a href="/book/{{book.id}}">{{book.title}}</a></p></li>
 {% endfor %}
 </li>
 
