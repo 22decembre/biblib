@@ -4,3 +4,9 @@ display: block;
 width: 200px;
 float: left;
 }
+
+div
+{
+	display: inline-block;
+	vertical-align: top;
+}

@@ -2,7 +2,13 @@
 {% block content %}
 
 {% for book in books %}
-<p><a href="/book/{{book.id}}">{{book.title}}</a></p>
+<p><a href="/book/{{book.id}}">{{book.title}}</a>
+
+{% for author in book.authors %}
+<a href="/author/{{author.id}}">{{author}}</a>
+{% endfor %}
+
+</p>
 {% endfor %}
 
 {% endblock %}

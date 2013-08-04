@@ -16,7 +16,7 @@ from werkzeug.datastructures import FileStorage
 @app.route('/')
 @app.route('/index')
 def index():
-	bk = Book.query.with_entities(Book.id,Book.title,Book.authors).all()
+	bk = Book.query.all()
 	auts = Author.query.with_entities(Author.id,Author.firstname,Author.familyname,Author.books).all() 
 	return render_template("index.html",
 	title = 'Index',
@@ -319,14 +319,11 @@ def edit_book(number):
 			db.session.commit()
 			db.session.refresh(book)
 		
-		# same as author
 		if amazon_img:
 			image_finale = urllib.urlopen(amazon_img)
-			#print image_finale
 			
 		if request.method == 'POST' and request.files['cover']:
 			image_finale = request.files['cover']
-			#print type(request.files)
 			
 		if image_finale:
 			fileurl = 'app/static/covers/' + str(book.id)
