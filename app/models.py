@@ -26,7 +26,7 @@ class Author(db.Model):
 		return self
 	
 	def remove_book(self, book):
-		self.books.remove(author)
+		self.books.remove(book)
 		return self
 
 class Book(db.Model):

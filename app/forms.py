@@ -9,7 +9,8 @@ def possible_author():
     return Author.query
 
 def possible_book():
-    return Book.query
+	return Book.query
+    #return Book.query(filter(Book.authors != author_id))
 
 class LoginForm(Form):
     openid = TextField('openid', validators = [Required()])
@@ -19,7 +20,7 @@ class DeleteForm(Form):
 	delete = BooleanField('delete', default = False)
     
 class BookForm(Form):
-	authortodelete = BooleanField('delete', default = False)
+	authortodelete = BooleanField('authortodelete', default = False)
 	title = TextField('title', [validators.Required()])
 	ean = TextField('ean', [validators.optional()])
 	isbn = TextField('isbn', [validators.optional()])
@@ -37,7 +38,7 @@ class BookForm(Form):
 	summary = TextAreaField('biography', [validators.optional()])
 
 class AuthorForm(Form):
-	booktodelete = BooleanField('delete', default = False)
+	booktodelete = BooleanField('booktodelete', default = False)
 	familyname 	= TextField('familyname', [validators.Required()])
 	firstname 	= TextField('firstname', [validators.Required()])
 	biography 	= TextAreaField('biography', [validators.optional()])

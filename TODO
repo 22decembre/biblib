@@ -2,16 +2,16 @@ fonction de login ?
 
 liaisons entre livres et auteurs => fait
 
-possibilité d'éditer les livres et auteurs => fait, sauf les dates
+possibilité d'éditer les livres et auteurs => fait, sauf les dates et les nombres de pages
 
-affichages des auteurs dans le listing d'amazon => fait (à verifier)
+affichages des auteurs dans le listing d'amazon => fait
 
-destruction des livres et auteurs. => ok (sauf gestion des images)
+destruction des livres et auteurs. => ok
 
 creation d'une fonction type "ces livres vont être détruits. êtes vous d'accord ?"
 
 possibilité de laisser des commentaires sur les pages.
 
-gestion des couvertures (file upload + amazon)
+gestion des couvertures (file upload + amazon) => fait !
 
 statistiques fines (groupes de livres de hauteurs diverses pour monter des étagères...).

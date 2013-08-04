@@ -9,6 +9,7 @@ from forms import BookForm, AuthorForm, SearchForm, LoginForm, DeleteForm
 from lxml import objectify
 import bottlenose
 import os
+from werkzeug.datastructures import FileStorage
 
 ### présentation
 
@@ -101,6 +102,7 @@ def delete_authors():
 	if form.validate_on_submit():
 		for item in request.form.getlist('delete'):
 			a = Author.query.get(item)
+			os.remove('app/static/photos/' + str(a.id))
 			db.session.delete(a)
 		db.session.commit()
 		return redirect('/admin')
@@ -115,6 +117,7 @@ def delete_books():
 	if form.validate_on_submit():
 		for item in request.form.getlist('delete'):
 			a = Book.query.get(item)
+			os.remove('app/static/covers/' + str(a.id))
 			db.session.delete(a)
 		db.session.commit()
 		return redirect('/admin')
@@ -128,12 +131,14 @@ def edit_author(number):
 	else:
 		author = Author.query.get(number)
 		title = author
+		if os.path.exists('app/static/photos/' + str(author.id)):
+			author.img = True
 	#global author
 	#a = author
 	form = AuthorForm()
 	update = False
 	if form.validate_on_submit():
-		print form.errors
+		#print form.errors
 		author.firstname = unicode(form.firstname.data)
 		author.familyname = unicode(form.familyname.data)
 		if form.nationality.data != author.nationality:
@@ -151,13 +156,20 @@ def edit_author(number):
 			update = True
 
 		# gestion des livres
-		for item in request.form.getlist('booktodelete'):
-			a = Book.query.get(item)
-			author.remove_book(a)
+		if request.form.getlist('booktodelete'):
+			for item in request.form.getlist('booktodelete'):
+				a = Book.query.get(item)
+				author.remove_book(a)
+				update = True
 		
-		for item in request.form.getlist('booktoadd'):
-			a = Book.query.get(item)
-			author.add_book(a)
+		if request.form.getlist('booktoadd'):
+			for item in request.form.getlist('booktoadd'):
+				# even if noting is select, the field return something, a unicode string '__None'
+				# this "if" not to block the whole thing. Same on books !
+				if item != '__None':
+					a = Book.query.get(item)
+					author.add_book(a)
+					update = True
 		
 		if update:
 			db.session.add(author)
@@ -166,7 +178,7 @@ def edit_author(number):
 		
 		# the photo will overwrite the previous if existing.
 		# thus, only one per author and nothing else to check
-		if request.method == 'POST' and 'portrait' in request.files:
+		if request.method == 'POST' and request.files['portrait']:
 			fileurl = 'app/static/photos/' + str(author.id)
 			image = request.files['portrait'].save(fileurl)
 		
@@ -175,6 +187,7 @@ def edit_author(number):
 
 @app.route('/edit_book/<number>', methods = ['GET', 'POST'])
 def edit_book(number):
+	amazon_img = False
 	if number == 'new':
 		book = Book()
 		book.mass = 0
@@ -183,6 +196,7 @@ def edit_book(number):
 		book.thickness = 0
 		title = 'Ajouter un livre dans la bibliotheque'
 	elif number[0:7] == 'amazon:':
+		import urllib
 		asin=unicode(number[7:])
 		amazon = bottlenose.Amazon(AWS_KEY,AMAZON_SECRET_KEY,LANG)
 		#
@@ -195,10 +209,10 @@ def edit_book(number):
 			book.title = unicode(xml.Items.Item.ItemAttributes.Title)
 		except AttributeError:
 			book.title = ''
-		#try:
-		#	book.img = unicode(xml.Items.Item.LargeImage.URL)
-		#except AttributeError:
-		#	book["img"] = ''
+		try:
+			amazon_img = unicode(xml.Items.Item.LargeImage.URL)
+		except AttributeError:
+			amazon_img = ''
 		try:
 			book.isbn = unicode(xml.Items.Item.ItemAttributes.ISBN)
 		except AttributeError:
@@ -242,22 +256,18 @@ def edit_book(number):
 		try:
 			book.summary = unicode(xml.Items.Item.EditorialReviews.EditorialReview.Content)
 		except AttributeError:
-			#try:
-				# sometime amazon doesn't give it the first time !
-				#fetch2 = amazon.ItemLookup(IdType='ASIN', ItemId= asin, ResponseGroup='EditorialReview')
-				#xml2 = objectify.fromstring(fetch2)
-				#book["summary"] = unicode(xml2.EditorialReview.Content)
-			#except AttributeError:
 			book.summary = ''
 		title = 'Ajouter un livre d\'Amazon dans la bibliotheque'
 
 	else:
 		book = Book.query.get(number)
 		title = book.title
+		if os.path.exists('app/static/covers/' + str(book.id)):
+			book.img = True
 	form = BookForm()
 	update = False
 	if form.validate_on_submit():
-		print form.errors
+		#print form.errors
 		book.title = unicode(form.title.data)
 		# on ajoute les élements en dessous, mais s'ils ne sont pas là, c'est pas grave !
 		if form.ean.data != book.ean:
@@ -281,23 +291,28 @@ def edit_book(number):
 		if form.mass.data != book.mass:
 			book.mass = form.mass.data
 			update = True
-		if form.numberofpages.data != book.numberofpages:
-			book.numberofpages = int(form.numberofpages.data)
-			update = True
+		#if form.numberofpages.data != book.numberofpages:
+		#	book.numberofpages = int(form.numberofpages.data)
+		#	if type(book.numberofpages) == 'int'
+		#		update = True
 		if form.publisher.data != book.publisher:
 			book.publisher = unicode(form.publisher.data)
 			update = True
+		#
 		# gestion des auteurs
-		if form.authortodelete != None:
+		if request.form.getlist('authortodelete'):
 			for item in request.form.getlist('authortodelete'):
 				a = Author.query.get(item)
 				book.remove_author(a)
 				update = True
-		if form.authortoadd:
+		#
+		if request.form.getlist('authortoadd'):
 			for item in request.form.getlist('authortoadd'):
-				a = Author.query.get(item)
-				book.add_author(a)
-				update = True
+				# Same as authors, see upside.
+				if item != '__None':
+					a = Author.query.get(item)
+					book.add_author(a)
+					update = True
 		# adding the book to the db
 		if update:
 			db.session.add(book)
@@ -305,12 +320,20 @@ def edit_book(number):
 			db.session.refresh(book)
 		
 		# same as author
-		if request.method == 'POST' and 'cover' in request.files:
+		if amazon_img:
+			image_finale = urllib.urlopen(amazon_img)
+			#print image_finale
+			
+		if request.method == 'POST' and request.files['cover']:
+			image_finale = request.files['cover']
+			#print type(request.files)
+			
+		if image_finale:
 			fileurl = 'app/static/covers/' + str(book.id)
-			image = request.files['cover'].save(fileurl)
+			image = FileStorage(image_finale).save(fileurl)
 				
 		return redirect('/admin')
-	return render_template('edit_book.html', form = form, book = book, title = title)
+	return render_template('edit_book.html', form = form, book = book, title = title, amazon_img = amazon_img)
 
 @app.route('/search_amazon_book', methods = ['GET', 'POST'])
 def search_amazon_book():

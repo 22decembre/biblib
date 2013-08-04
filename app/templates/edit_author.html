@@ -8,13 +8,9 @@
 <h1>Ajouter un auteur dans la bibliothèque</h1>
 {% endif %}
 <form action="" method="post" name="edit_author" enctype="multipart/form-data">
-
- {% if author.img %}
- <img src="{{author.img}}" alt="{{author}}" />
- <p>Cette image est enregistrée comme la photographie de {{author}}. Si vous voulez enregistrer une autre image, il vous suffit d'utiliser le champ d'upload ci-dessous.</p>
- {% endif %}
  
     {{form.hidden_tag()}}
+    <div id="formulaire">
     <aside>
     <p><label for="firstname">Veuillez donner son prénom (obligatoire) : </label>{{form.firstname(value=author.firstname)}}</p>
     <p><label for="familyname">Nom de famille (obligatoire) : </label>{{form.familyname(value=author.familyname)}}</p>
@@ -35,11 +31,22 @@
     {% endif %}
     
     <h3>Livres à ajouter</h3>
-    <p>Livre   : {{form.booktoadd}}</p>
-    <p>Livre 2 : {{form.booktoadd}}</p>
-    <p>Livre 3 : {{form.booktoadd}}</p>
+    <p><label>Livre   : </label>{{form.booktoadd}}</p>
+    <p><label>Livre 2 : </label>{{form.booktoadd}}</p>
+    <p><label>Livre 3 : </label>{{form.booktoadd}}</p>
     </aside>
-    <p>Biographie : <textarea name="biography" cols="35" rows="20">{{author.biography}}</textarea></p>
+    </div>
+    <div id="text">
+    <p>Biographie : </p>
+	<p><textarea name="biography" cols="35" rows="20">{{author.biography}}</textarea></p>
+    </div>
+    <div id = "image">
+    {% if author.img %}
+	<img src="/static/photos/{{author.id}}" alt="{{author}}" />
+	<p>Cette image est enregistrée comme la photographie de {{author}}.</p>
+	<p>Si vous voulez enregistrer une autre image, il vous suffit d'utiliser le champ d'upload du formulaire.</p>
+	{% endif %}
+    </div>
    <p><input type="submit" value="Envoyer"></p>
 </form>
 {% endblock %}
