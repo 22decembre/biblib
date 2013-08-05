@@ -10,3 +10,8 @@ div
 	display: inline-block;
 	vertical-align: top;
 }
+
+#formulaire
+{
+	max-width: 28%;
+}

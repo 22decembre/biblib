@@ -46,20 +46,20 @@
 	<!-- I am using textarea there and not jinga2 thing, because I want to prepopulate this thing !
 	take care : there's nothing about this textarea in forms.py, but there's in view !
 	it's because form doesn't generate it, but view take it to register in the db. -->
-    <p>Quatrième de couverture : </p>
+    <h2>Quatrième de couverture</h2>
     <p><textarea name="summary" rows="20" cols="50">{{book.summary}}</textarea></p>
 </div>
 
 <div id="image">
  {% if amazon_img %}
+  
  <img src="{{amazon_img}}" alt="couverture de {{book.title}}" />
- <p>Cette image sera enregistrée comme la couverture du livre {{book.title}}.</p>
  <p>Si vous voulez enregistrer une autre image, il vous suffit d'utiliser le champ d'upload du formulaire.</p>
  {% endif %}
  
 {% if book.img %}
+	<h2>Couverture du livre</h2>
 	<img src="/static/covers/{{book.id}}" alt="Couverture de {{book.title}}" />
-	<p>Cette image est enregistrée comme la couverture du livre {{book.title}}.</p>
 	<p>Si vous voulez enregistrer une autre image, il vous suffit d'utiliser le champ d'upload du formulaire.</p>
 {% endif %}
  
