@@ -38,12 +38,12 @@
     </div>
     <div id="text">
     <p>Biographie : </p>
-	<p><textarea name="biography" cols="35" rows="20">{{author.biography}}</textarea></p>
+	<p><textarea name="biography" rows="20">{{author.biography}}</textarea></p>
     </div>
     <div id = "image">
     {% if author.img %}
+	<p>Portrait de l'auteur {{author}}.</p>
 	<img src="/static/photos/{{author.id}}" alt="{{author}}" />
-	<p>Cette image est enregistrée comme la photographie de {{author}}.</p>
 	<p>Si vous voulez enregistrer une autre image, il vous suffit d'utiliser le champ d'upload du formulaire.</p>
 	{% endif %}
     </div>

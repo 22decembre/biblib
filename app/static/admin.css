@@ -10,3 +10,20 @@ div
 	display: inline-block;
 	vertical-align: top;
 }
+
+#text
+{
+	width: 30%;
+}
+
+#image
+{
+	width: 35%;
+	float: right;
+}
+
+textarea
+{
+	width: 90%;
+	float: center;
+}

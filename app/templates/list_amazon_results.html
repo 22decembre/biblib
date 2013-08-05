@@ -8,12 +8,14 @@
 <p>En cliquant sur le titre d'un livre ou sur l'image, vous ouvrez une page pour l'enregistrer dans la base de donnéeS.</p>
 
 {% for book in listing %}
-<p>
   <h2><a href='/edit_book/amazon:{{book["ASIN"]}}' >{{book["title"]}}</a></h2>
   {% if book["img"] %}
+  <div id="miniature">
   <a href='/edit_book/amazon:{{book["ASIN"]}}' ><img src="{{book["img"]}}" align="left" alt ="Photo de couverture de {{book["title"]}}" /></a>
+  </div>
   {% endif %}
   
+  <div id="amazon_item">
   <ul>
   {% if book["ISBN"] %}
   <li>isbn : {{book["ISBN"]}}</li>
@@ -31,7 +33,7 @@
   <li>auteur : {{author}}</li>
   {% endfor %}
  </ul>
-</p>
+ </div>
 <br />
 <br />
 {% endfor %}
