@@ -56,7 +56,8 @@ float:left;
 }
 /*Je place l'image dans le conteneur*/
 #colonne img{
-margin-top: 25%;
+position: fixed;
+top: 15%;
 }
 
 /*Je decris la taille, et l'emplacement de l'article*/

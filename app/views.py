@@ -102,7 +102,12 @@ def delete_authors():
 	if form.validate_on_submit():
 		for item in request.form.getlist('delete'):
 			a = Author.query.get(item)
-			os.remove('app/static/photos/' + str(a.id))
+			if a.books:
+				for book in a.books:
+					a.remove_book(book)
+				db.session.commit()
+			if os.path.exists('app/static/photos/' + str(a.id)):
+				os.remove('app/static/photos/' + str(a.id))
 			db.session.delete(a)
 		db.session.commit()
 		return redirect('/admin')
@@ -117,7 +122,12 @@ def delete_books():
 	if form.validate_on_submit():
 		for item in request.form.getlist('delete'):
 			a = Book.query.get(item)
-			os.remove('app/static/covers/' + str(a.id))
+			if a.authors:
+				for author in a.authors:
+					a.remove_author(author)
+				db.session.commit()
+			if os.path.exists('app/static/covers/' + str(a.id)):
+				os.remove('app/static/covers/' + str(a.id))
 			db.session.delete(a)
 		db.session.commit()
 		return redirect('/admin')
@@ -285,7 +295,7 @@ def edit_book(number):
 		if form.length.data != book.length:
 			book.length = form.length.data
 			update = True
-		if form.summary.data != book.summary:
+		if form.summary.data != book.summary and form.summary.data != None:
 			book.summary = unicode(form.summary.data)
 			update = True
 		if form.mass.data != book.mass:
@@ -295,7 +305,7 @@ def edit_book(number):
 		#	book.numberofpages = int(form.numberofpages.data)
 		#	if type(book.numberofpages) == 'int'
 		#		update = True
-		if form.publisher.data != book.publisher:
+		if form.publisher.data != book.publisher and form.publisher.data != None:
 			book.publisher = unicode(form.publisher.data)
 			update = True
 		#
@@ -318,6 +328,8 @@ def edit_book(number):
 			db.session.add(book)
 			db.session.commit()
 			db.session.refresh(book)
+		
+		image_finale = False
 		
 		if amazon_img:
 			image_finale = urllib.urlopen(amazon_img)

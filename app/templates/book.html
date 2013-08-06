@@ -10,10 +10,13 @@
 <ul id="texte">
 <li><h2>Titre : </h2><p>{{book.title}}</p></li>
 
-{% for author in book.authors %}
-<li><h3>Auteur : </h3><p><a href="/author/{{author.id}}">{{author}}</a></p></li>
-{% endfor %}
+{% if book.authors %}
+<li><h3>Auteurs : </h3>
+	{% for author in book.authors %}
+	<p><a href="/author/{{author.id}}">{{author}}</a></p>
+	{% endfor %}
 </li>
+{% endif %}
 
 {% if book.ean != 0 %}
 <li><h3>ISBN 13 (EAN) : </h3><p>{{book.ean}}</p></li>

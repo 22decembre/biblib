@@ -8,18 +8,21 @@
 <ul id="texte">
 <li><h2>Auteur : </h2><p>{{author}}</p></li>
 
-{% for book in author.books %}
-<li><h3>Livre : </h3><p><a href="/book/{{book.id}}">{{book.title}}</a></p></li>
-{% endfor %}
+{% if author.books %}
+<li><h3>Livres : </h3>
+	{% for book in author.books %}
+	<p><a href="/book/{{book.id}}">{{book.title}}</a></p>
+	{% endfor %}
 </li>
+{% endif %}
 
 {% if author.website %}
 <li><h3>Son site web : </h3><p><a href="{{author.website}}">{{author.website}}</a></p></li>
 {% endif %}
 
-{% if author.dateofbirth %}
+{# {% if author.dateofbirth %}
 <li><h3>Sa date de naissance :</h3><p>{{author.dateofbirth}}</p></li>
-{% endif %}
+{% endif %} #}
 
 {% if author.placeofbirth %}
 <li><h3>Lieu de naissance : </h3><p>{{author.placeofbirth}}</p></li>
