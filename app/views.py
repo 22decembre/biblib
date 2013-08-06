@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import render_template, flash, redirect, request
+from flask import render_template, flash, redirect, request, g
 from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user, current_user
 from flask.ext.wtf import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, FileField, file_allowed, validators, Required
 from app import app, db
@@ -43,6 +43,11 @@ def author(number):
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@app.before_request
+def before_request():
+    g.user = current_user
 
 class User(UserMixin):
 	def __init__(self, uid=None, name=None, passwd=None):
@@ -62,6 +67,9 @@ class User(UserMixin):
 	def is_active(self):
 		return self.active
 
+	def is_authenticated(self):
+		return True
+	
 	def get_id(self):
 		return self.id   
 
@@ -90,6 +98,8 @@ def load_user(userid):
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+	if g.user is not None and g.user.is_authenticated():
+		return redirect('admin')
 	form = LoginForm()
 	if request.method == 'POST' and form.validate():
 		user = User(name=form.username.data, passwd=form.password.data)
@@ -110,6 +120,7 @@ def logout():
 ### admin / backend
 
 @app.route('/admin')
+@login_required
 def admin():
 	# compter les auteurs
 	bk = Book.query.with_entities(Book.id,Book.title).all()
@@ -158,6 +169,7 @@ def admin():
 	return render_template("index_admin.html", sitename = 'Ma Bibliotheque', dico = dico, books_list = bk, authors_list = aut)
 
 @app.route('/delete_authors', methods = ['GET', 'POST'])
+@login_required
 def delete_authors():
 	form = DeleteForm()
 	auts = Author.query.all()
@@ -178,6 +190,7 @@ def delete_authors():
 	sitename = 'Ma Bibliotheque',listing = auts, form = form)
 
 @app.route('/delete_books', methods = ['GET', 'POST'])
+@login_required
 def delete_books():
 	form = DeleteForm()
 	bk = Book.query.with_entities(Book.id,Book.title).all()
@@ -196,6 +209,7 @@ def delete_books():
 	return render_template("delete_books.html", title = 'Eliminer un ou des livres de la bibliotheque', sitename = 'Ma Bibliotheque',listing = bk, form = form)
 
 @app.route('/edit_author/<number>', methods = ['GET', 'POST'])
+@login_required
 def edit_author(number):
 	if number == 'new':
 		author = Author()
@@ -258,6 +272,7 @@ def edit_author(number):
 	return render_template('edit_author.html', form = form, author = author, title = title)
 
 @app.route('/edit_book/<number>', methods = ['GET', 'POST'])
+@login_required
 def edit_book(number):
 	amazon_img = False
 	if number == 'new':
@@ -407,6 +422,7 @@ def edit_book(number):
 	return render_template('edit_book.html', form = form, book = book, title = title, amazon_img = amazon_img)
 
 @app.route('/search_amazon_book', methods = ['GET', 'POST'])
+@login_required
 def search_amazon_book():
 	form = SearchForm()
 	if form.validate_on_submit():
