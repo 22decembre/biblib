@@ -27,3 +27,7 @@ textarea
 	width: 90%;
 	float: center;
 }
+#formulaire
+{
+	max-width: 28%;
+}

@@ -5,7 +5,7 @@
 <p><a href="/book/{{book.id}}">{{book.title}}</a>
 
 {% for author in book.authors %}
-<a href="/author/{{author.id}}">{{author}}</a>
+ | <a href="/author/{{author.id}}">{{author}}</a>
 {% endfor %}
 
 </p>

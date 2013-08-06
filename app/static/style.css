@@ -1,6 +1,19 @@
-
 /*Reset CSS, les CSS ont des paramètres par défaut, c'est utile de les reset au début du CSS*/
-* {margin: 0; padding: 0; border: 0; outline: 0; font-size: 100%; vertical-align: baseline; background: transparent; line-height: 1; list-style: none; quotes: none; content: ''; content: none; }
+* {
+margin: 0;
+padding: 0;
+border: 0;
+outline: 0;
+font-size: 100%;
+vertical-align: baseline;
+background: transparent;
+line-height: 1;
+list-style: none;
+quotes: none;
+content: '';
+content: none;
+}
+
 html {
 height: 100%
 }
@@ -29,7 +42,7 @@ font-size: 11pt;
 
 /*ici je décris la taille du site et sa position par rapport à la fenêtre (centré ici)*/
 #wrapper {
-margin-top: 30px;
+/* margin-top: 30px; */
 width: 920px;
 height: 100%;
 margin-left: 10px;
@@ -43,13 +56,14 @@ float:left;
 }
 /*Je place l'image dans le conteneur*/
 #colonne img{
-margin-top: 100%;
+margin-top: 25%;
 }
 
 /*Je decris la taille, et l'emplacement de l'article*/
 #main {
 width: 700px;
 float: left;
+margin-top: 30px;
 margin-left: 20px;
 padding-bottom: 10px;
 border-bottom : 1px dotted #999999;
