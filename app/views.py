@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from flask import render_template, flash, redirect, request
+from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user, current_user
 from flask.ext.wtf import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, FileField, file_allowed, validators, Required
 from app import app, db
-from config import AWS_KEY,AMAZON_SECRET_KEY,LANG
+from config import AWS_KEY,AMAZON_SECRET_KEY,LANG, LDAP_HOST, LDAP_BASE_DN, LDAP_ID
 from models import Author, Book
 from forms import BookForm, AuthorForm, SearchForm, LoginForm, DeleteForm
 from lxml import objectify
 import bottlenose
+import simpleldap
 import os
 from werkzeug.datastructures import FileStorage
 
@@ -37,15 +39,75 @@ def author(number):
 		author.img = True
 	return render_template('author.html', sitename = 'Ma Bibliotheque', title = author, author = author)
 
-### backend / admin
-	
-@app.route('/login', methods = ['GET', 'POST'])
+### login / ldap
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+class User(UserMixin):
+	def __init__(self, uid=None, name=None, passwd=None):
+
+		self.active = False
+		
+		ldapres = ldap_fetch(uid=uid, name=name, passwd=passwd)
+
+		if ldapres is not None:
+			self.name = ldapres['name']
+			self.id = ldapres['id']
+			# assume that a disabled user belongs to group 404
+			if ldapres['gid'] != 404:
+				self.active = True
+			self.gid = ldapres['gid']
+
+	def is_active(self):
+		return self.active
+
+	def get_id(self):
+		return self.id   
+
+def ldap_name(name):
+	return '{0}={1},{2}'.format(LDAP_ID, name, LDAP_BASE_DN)
+		
+def ldap_fetch(uid=None, name=None, passwd=None):
+	try:
+		if name is not None and passwd is not None:
+			l = simpleldap.Connection(LDAP_HOST,dn=ldap_name(name),password=passwd)
+			r = l.search('uid={0}'.format(name), base_dn=LDAP_BASE_DN)
+		else:
+			l = simpleldap.Connection(LDAP_HOST)
+			r = l.search('uidNumber={0}'.format(uid), base_dn=LDAP_BASE_DN)
+		return {
+			'name': r[0]['uid'][0],
+			'id': unicode(r[0]['uidNumber'][0]),
+			'gid': int(r[0]['gidNumber'][0])
+			}
+	except:
+		return None
+
+@login_manager.user_loader
+def load_user(userid):
+	return User(uid=userid)
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
 	form = LoginForm()
-	if form.validate_on_submit():
-		flash('Login requested for OpenID="' + form.openid.data + '", remember_me=' + str(form.remember_me.data))
-		return redirect('/index')
-	return render_template('login.html', title = 'Sign In', form = form)
+	if request.method == 'POST' and form.validate():
+		user = User(name=form.username.data, passwd=form.password.data)
+		
+		if user.active:
+			login_user(user)
+			flash("Logged in successfully.")
+			return redirect("/admin")
+	return render_template("login.html", form=form)
+
+
+@app.route("/logout", methods=["GET", "POST"])
+@login_required
+def logout():
+	logout_user()
+	return redirect("/")
+
+### admin / backend
 
 @app.route('/admin')
 def admin():

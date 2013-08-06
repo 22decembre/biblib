@@ -12,8 +12,11 @@ LANG = 'fr'
 AWS_KEY = 'AKIAJFESEM3FR6WMMKLA'
 AMAZON_SECRET_KEY = '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'
 
-UPLOADED_PHOTOS_DEST = 'photos'
-UPLOADED_COVERS_DEST = 'covers'
+#ldap auth
+LDAP_HOST = 'blackblock.22decembre.eu'
+LDAP_DOMAIN = '22decembre.eu'
+LDAP_BASE_DN = 'ou=users,dc=22decembre,dc=eu'
+LDAP_ID = 'uid'
 
 # DB TYPE
 SQL = 'mysql'

@@ -2,7 +2,7 @@
 
 import flask
 from models import Author, Book
-from flask.ext.wtf import Form, Field, TextField, BooleanField, DateField, HiddenField, IntegerField, DecimalField, TextAreaField, QuerySelectField, FileField, file_allowed, validators, Required
+from flask.ext.wtf import Form, Field, TextField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, DecimalField, TextAreaField, QuerySelectField, FileField, file_allowed, validators, Required
 from werkzeug import secure_filename
 
 def possible_author():
@@ -13,8 +13,8 @@ def possible_book():
     #return Book.query(filter(Book.authors != author_id))
 
 class LoginForm(Form):
-    openid = TextField('openid', validators = [Required()])
-    remember_me = BooleanField('remember_me', default = False)
+    username = TextField("Username", [validators.Length(min=2, max=25)])
+    password = PasswordField('Password', [validators.Required()])
 
 class DeleteForm(Form):
 	delete = BooleanField('delete', default = False)
