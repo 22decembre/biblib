@@ -4,19 +4,25 @@
 
 {% block content %}
 <h1>Administration</h1>
+
+<h2>Statistiques</h2>
+<p>Il y a {{dico.aut}} auteurs enregistrés dans la base de données.</p>
+<p>Il y a {{dico.bk_nb}} livres enregistrés dans la base de données, pour un total de {{dico.bk_mass}} {{dico.bk_mass_unit}}, {{dico.bk_vol}} {{dico.bk_vol_unit}}, soit une pile d'une hauteur totale de {{dico.bk_len}} m.</p>
+
+<div>
 <h2>Éditer un auteur</h2>
 
 {% for author in authors_list %}
 <p><a href='/edit_author/{{author.id}}' >{{author.id}} - {{author}}</a></p>
 {% endfor %}
+</div>
 
+<div>
 <h2>Éditer un livre</h2>
 
 {% for book in books_list %}
 <p><a href='/edit_book/{{book.id}}' >{{book.id}} - {{book.title}}</a></p>
 {% endfor %}
+</div>
 
-<h2>Statistiques</h2>
-<p>Il y a {{dico.aut}} auteurs enregistrés dans la base de données.</p>
-<p>Il y a {{dico.bk_nb}} livres enregistrés dans la base de données, pour un total de {{dico.bk_mass}} {{dico.bk_mass_unit}}, {{dico.bk_vol}} {{dico.bk_vol_unit}}, soit une pile d'une hauteur totale de {{dico.bk_len}} m.</p>
 {% endblock %}
