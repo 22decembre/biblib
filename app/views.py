@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 
-from flask import render_template, flash, redirect, request, g
-from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user, current_user
-from flask.ext.wtf import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, FileField, file_allowed, validators, Required
+from flask import render_template, flash, redirect, request
+#from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user, current_user
+from wtforms import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, FileField, validators
 from app import app, db
-from config import AWS_KEY,AMAZON_SECRET_KEY,LANG, LDAP_HOST, LDAP_BASE_DN, LDAP_ID
+from config import AWS_KEY,AMAZON_SECRET_KEY,LANG, AUTH_SYSTEM
 from models import Author, Book
 from forms import BookForm, AuthorForm, SearchForm, LoginForm, DeleteForm
 from lxml import objectify
 import bottlenose
-import simpleldap
+#import simpleldap
 import os
 from werkzeug.datastructures import FileStorage
+
+if AUTH_SYSTEM == 'basic':
+	from flask.ext.basicauth import BasicAuth
+	auth = BasicAuth(app)
 
 ### présentation
 
@@ -41,86 +45,86 @@ def author(number):
 
 ### login / ldap
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
+#login_manager = LoginManager()
+#login_manager.init_app(app)
+#login_manager.login_view = 'login'
 
-@app.before_request
-def before_request():
-    g.user = current_user
+#@app.before_request
+#def before_request():
+    #g.user = current_user
 
-class User(UserMixin):
-	def __init__(self, uid=None, name=None, passwd=None):
+#class User(UserMixin):
+	#def __init__(self, uid=None, name=None, passwd=None):
 
-		self.active = False
+		#self.active = False
 		
-		ldapres = ldap_fetch(uid=uid, name=name, passwd=passwd)
+		#ldapres = ldap_fetch(uid=uid, name=name, passwd=passwd)
 
-		if ldapres is not None:
-			self.name = ldapres['name']
-			self.id = ldapres['id']
-			# assume that a disabled user belongs to group 404
-			if ldapres['gid'] != 404:
-				self.active = True
-			self.gid = ldapres['gid']
+		#if ldapres is not None:
+			#self.name = ldapres['name']
+			#self.id = ldapres['id']
+			## assume that a disabled user belongs to group 404
+			#if ldapres['gid'] != 404:
+				#self.active = True
+			#self.gid = ldapres['gid']
 
-	def is_active(self):
-		return self.active
+	#def is_active(self):
+		#return self.active
 
-	def is_authenticated(self):
-		return True
+	#def is_authenticated(self):
+		#return True
 	
-	def get_id(self):
-		return self.id   
+	#def get_id(self):
+		#return self.id   
 
-def ldap_name(name):
-	return '{0}={1},{2}'.format(LDAP_ID, name, LDAP_BASE_DN)
+#def ldap_name(name):
+	#return '{0}={1},{2}'.format(LDAP_ID, name, LDAP_BASE_DN)
 		
-def ldap_fetch(uid=None, name=None, passwd=None):
-	try:
-		if name is not None and passwd is not None:
-			l = simpleldap.Connection(LDAP_HOST,dn=ldap_name(name),password=passwd)
-			r = l.search('uid={0}'.format(name), base_dn=LDAP_BASE_DN)
-		else:
-			l = simpleldap.Connection(LDAP_HOST)
-			r = l.search('uidNumber={0}'.format(uid), base_dn=LDAP_BASE_DN)
-		return {
-			'name': r[0]['uid'][0],
-			'id': unicode(r[0]['uidNumber'][0]),
-			'gid': int(r[0]['gidNumber'][0])
-			}
-	except:
-		return None
+#def ldap_fetch(uid=None, name=None, passwd=None):
+	#try:
+		#if name is not None and passwd is not None:
+			#l = simpleldap.Connection(LDAP_HOST,dn=ldap_name(name),password=passwd)
+			#r = l.search('uid={0}'.format(name), base_dn=LDAP_BASE_DN)
+		#else:
+			#l = simpleldap.Connection(LDAP_HOST)
+			#r = l.search('uidNumber={0}'.format(uid), base_dn=LDAP_BASE_DN)
+		#return {
+			#'name': r[0]['uid'][0],
+			#'id': unicode(r[0]['uidNumber'][0]),
+			#'gid': int(r[0]['gidNumber'][0])
+			#}
+	#except:
+		#return None
 
-@login_manager.user_loader
-def load_user(userid):
-	return User(uid=userid)
+#@login_manager.user_loader
+#def load_user(userid):
+	#return User(uid=userid)
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-	if g.user is not None and g.user.is_authenticated():
-		return redirect('admin')
-	form = LoginForm()
-	if request.method == 'POST' and form.validate():
-		user = User(name=form.username.data, passwd=form.password.data)
+#@app.route("/login", methods=["GET", "POST"])
+#def login():
+	#if g.user is not None and g.user.is_authenticated():
+		#return redirect('admin')
+	#form = LoginForm()
+	#if request.method == 'POST' and form.validate():
+		#user = User(name=form.username.data, passwd=form.password.data)
 		
-		if user.active:
-			login_user(user)
-			flash("Logged in successfully.")
-			return redirect("/admin")
-	return render_template("login.html", form=form)
+		#if user.active:
+			#login_user(user)
+			#flash("Logged in successfully.")
+			#return redirect("/admin")
+	#return render_template("login.html", form=form)
 
 
-@app.route("/logout", methods=["GET", "POST"])
-@login_required
-def logout():
-	logout_user()
-	return redirect("/")
+#@app.route("/logout", methods=["GET", "POST"])
+#@login_required
+#def logout():
+	#logout_user()
+	#return redirect("/")
 
 ### admin / backend
 
 @app.route('/admin')
-@login_required
+@auth.required
 def admin():
 	# compter les auteurs
 	bk = Book.query.with_entities(Book.id,Book.title).all()
@@ -169,7 +173,7 @@ def admin():
 	return render_template("index_admin.html", sitename = 'Ma Bibliotheque', dico = dico, books_list = bk, authors_list = aut)
 
 @app.route('/delete_authors', methods = ['GET', 'POST'])
-@login_required
+@auth.required
 def delete_authors():
 	form = DeleteForm()
 	auts = Author.query.all()
@@ -190,7 +194,7 @@ def delete_authors():
 	sitename = 'Ma Bibliotheque',listing = auts, form = form)
 
 @app.route('/delete_books', methods = ['GET', 'POST'])
-@login_required
+@auth.required
 def delete_books():
 	form = DeleteForm()
 	bk = Book.query.with_entities(Book.id,Book.title).all()
@@ -209,7 +213,7 @@ def delete_books():
 	return render_template("delete_books.html", title = 'Eliminer un ou des livres de la bibliotheque', sitename = 'Ma Bibliotheque',listing = bk, form = form)
 
 @app.route('/edit_author/<number>', methods = ['GET', 'POST'])
-@login_required
+@auth.required
 def edit_author(number):
 	if number == 'new':
 		author = Author()
@@ -272,7 +276,7 @@ def edit_author(number):
 	return render_template('edit_author.html', form = form, author = author, title = title)
 
 @app.route('/edit_book/<number>', methods = ['GET', 'POST'])
-@login_required
+@auth.required
 def edit_book(number):
 	amazon_img = False
 	if number == 'new':
@@ -422,7 +426,7 @@ def edit_book(number):
 	return render_template('edit_book.html', form = form, book = book, title = title, amazon_img = amazon_img)
 
 @app.route('/search_amazon_book', methods = ['GET', 'POST'])
-@login_required
+@auth.required
 def search_amazon_book():
 	form = SearchForm()
 	if form.validate_on_submit():

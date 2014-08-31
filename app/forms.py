@@ -2,7 +2,7 @@
 
 import flask
 from models import Author, Book
-from flask.ext.wtf import Form, Field, TextField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, DecimalField, TextAreaField, QuerySelectField, FileField, file_allowed, validators, Required
+from wtforms import Form, Field, TextField, PasswordField, BooleanField, DateField, HiddenField, IntegerField, DecimalField, TextAreaField, FileField, validators, SelectField
 from werkzeug import secure_filename
 
 def possible_author():
@@ -34,7 +34,7 @@ class BookForm(Form):
 	
 	# take care ! I place a textarea and a SelectField here but don't use it in the template, cause I want to be able to fill it, whereas I can't with it!
 	# this is needed by the view.
-	authortoadd = QuerySelectField('authortoadd', query_factory = possible_author,allow_blank=True)
+	authortoadd = SelectField('authortoadd', query_factory = possible_author,allow_blank=True)
 	summary = TextAreaField('biography', [validators.optional()])
 
 class AuthorForm(Form):
@@ -48,7 +48,7 @@ class AuthorForm(Form):
 	website 	= TextField('website', [validators.optional()])
 	
 	# il faudrait limiter les valeurs à celles qui NE SONT PAS déjà des bouquins de l'auteur X…
-	booktoadd = QuerySelectField('booktoadd', query_factory=possible_book,get_label='title',allow_blank=True)
+	booktoadd = SelectField('booktoadd', query_factory=possible_book,get_label='title',allow_blank=True)
 	portrait = FileField('portrait', [validators.optional()])
 
 class SearchForm(Form):

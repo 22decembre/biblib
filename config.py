@@ -12,14 +12,23 @@ LANG = 'fr'
 AWS_KEY = 'AKIAJFESEM3FR6WMMKLA'
 AMAZON_SECRET_KEY = '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'
 
-#ldap auth
+
+### authentication
+
+AUTH_SYSTEM = 'basic'
+
+# use of flask-basicauth : AUTH='basic'
+BASIC_AUTH_USERNAME = 'john'
+BASIC_AUTH_PASSWORD = 'matrix'
+
+# or ldap with flask-simpleldap : AUTH='ldap'
 LDAP_HOST = 'blackblock.22decembre.eu'
 LDAP_DOMAIN = '22decembre.eu'
 LDAP_BASE_DN = 'ou=users,dc=22decembre,dc=eu'
 LDAP_ID = 'uid'
 
 # DB TYPE
-SQL = 'mysql'
+SQL = 'sqlite'
 
 # FOR SERVER DATABASES : ORACLE, MYSQL, POSTGRESQL
 SQL_HOST = 'blackblock.22decembre.eu'	# defaut : localhost in case of empty
