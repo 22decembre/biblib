@@ -9,7 +9,7 @@
 {% endif %}
 <form action="" method="post" name="edit_author" enctype="multipart/form-data">
  
-    {{form.hidden_tag()}}
+    {# {{form.hidden_tag()}} #}
     <div id="formulaire">
     <aside>
     <p><label for="firstname">Veuillez donner son prénom (obligatoire) : </label>{{form.firstname(value=author.firstname)}}</p>

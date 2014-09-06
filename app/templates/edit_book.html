@@ -3,7 +3,7 @@
 
 {% block content %}
 <form action="" method="post" name="edit_book" enctype="multipart/form-data">
-    {{form.hidden_tag()}}
+    {# {{form.hidden_tag()}} #}
 
 {% if book.title %}
 <h1>Ajouter ou éditer le livre <i>{{book.title}}</i> de la bibliothèque</h1>

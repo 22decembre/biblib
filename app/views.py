@@ -5,7 +5,7 @@ from flask import render_template, flash, redirect, request
 from wtforms import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, FileField, validators
 from app import app, db
 from config import AWS_KEY,AMAZON_SECRET_KEY,LANG, AUTH_SYSTEM
-from models import Author, Book
+from models import Author, Book, author_book
 from forms import BookForm, AuthorForm, SearchForm, LoginForm, DeleteForm
 from lxml import objectify
 import bottlenose
@@ -177,7 +177,7 @@ def admin():
 def delete_authors():
 	form = DeleteForm()
 	auts = Author.query.all()
-	if form.validate_on_submit():
+	if form.request=='POST' and form.validate():
 		for item in request.form.getlist('delete'):
 			a = Author.query.get(item)
 			if a.books:
@@ -194,11 +194,12 @@ def delete_authors():
 	sitename = 'Ma Bibliotheque',listing = auts, form = form)
 
 @app.route('/delete_books', methods = ['GET', 'POST'])
-@auth.required
+#@auth.required
 def delete_books():
 	form = DeleteForm()
 	bk = Book.query.with_entities(Book.id,Book.title).all()
-	if form.validate_on_submit():
+	#if form.validate_on_submit():
+	if form.request=='POST' and form.validate():
 		for item in request.form.getlist('delete'):
 			a = Book.query.get(item)
 			if a.authors:
@@ -226,8 +227,10 @@ def edit_author(number):
 	#global author
 	#a = author
 	form = AuthorForm()
+	form.booktoadd.choices = Book.query.filter(Book!=author.books)
 	update = False
-	if form.validate_on_submit():
+	#if form.validate_on_submit():
+	if request.form=='POST' and form.validate():
 		#print form.errors
 		author.firstname = unicode(form.firstname.data)
 		author.familyname = unicode(form.familyname.data)
@@ -356,8 +359,10 @@ def edit_book(number):
 		if os.path.exists('app/static/covers/' + str(book.id)):
 			book.img = True
 	form = BookForm()
+	form.authortoadd.choices = Author.query.filter(Author!=book.authors)
 	update = False
-	if form.validate_on_submit():
+	#if form.validate_on_submit():
+	if request.form=='POST' and form.validate():
 		#print form.errors
 		book.title = unicode(form.title.data)
 		# on ajoute les élements en dessous, mais s'ils ne sont pas là, c'est pas grave !
@@ -429,7 +434,8 @@ def edit_book(number):
 @auth.required
 def search_amazon_book():
 	form = SearchForm()
-	if form.validate_on_submit():
+	if request.form=='POST' and form.validate():
+	#if form.validate_on_submit():
 		amazon = bottlenose.Amazon(AWS_KEY,AMAZON_SECRET_KEY,LANG)
 		search = amazon.ItemSearch(EAN=str(form.ean.data), ISBN=str(form.isbn.data), Title=unicode(form.title.data), Author=unicode(form.author.data), SearchIndex='Books', ResponseGroup='Medium')
 		#
