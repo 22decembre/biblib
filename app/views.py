@@ -4,7 +4,8 @@ from flask import render_template, flash, redirect, request
 #from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user, current_user
 from wtforms import Form, TextField, BooleanField, DateField, IntegerField, DecimalField, TextAreaField, FileField, validators
 from app import app, db
-from config import AWS_KEY,AMAZON_SECRET_KEY,LANG, AUTH_SYSTEM
+#from config import AWS_KEY,AMAZON_SECRET_KEY,LANG, 
+from config import AUTH_SYSTEM
 from models import Author, Book, author_book
 from forms import BookForm, AuthorForm, SearchForm, LoginForm, DeleteForm
 from lxml import objectify
